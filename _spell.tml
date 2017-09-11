@@ -1,0 +1,75 @@
+import (
+	"context"
+	"errors"
+	{{ range (split (sel "Imports") " ") }}
+		{{ if notequal . ""}}{{quote .}}{{end}}
+	{{end}}
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
+	"github.com/influx6/moz/gen/filesystem"
+	"github.com/moby/moby/client"
+)
+
+// {{sel "Name"}} returns a new {{sel "Name"}}Spell instance to be executed on the client.
+func (d *DockerCaster) {{sel "Name"}}({{if lenNotEqual (attrs "arguments") 0 }} {{ joinInterface (attrs "arguments") ", " }} {{end}}) (*{{sel "Name"}}Spell, error) {
+	var spell {{sel "Name"}}Spell
+	{{ range (attrs "arguments") }}
+	{{ $parts := (split . " ") }}
+	{{if lenNotEqual $parts 0 }}
+		spell.{{ nthOf $parts 0 }} = {{ nthOf $parts 0 }}
+	{{end}}
+	{{end}}
+
+	return &spell, nil
+}
+
+// {{sel "Name"}}Spell defines a function type to modify internal fields of the {{sel "Name"}}Spell.
+type {{sel "Name"}}Options func(*{{sel "Name"}}Spell)
+
+// {{sel "Name"}}ResponseCallback defines a function type for {{sel "Name"}}Spell response.
+type {{sel "Name"}}ResponseCallback func({{if lenNotEqual (attrs "return") 0 }} {{ joinInterface (attrs "return") ", " }} {{end}}) error
+
+// Always{{sel "Name"}}SpellWith returns a object that always executes the provided {{sel "Name"}}Spell with the provided callback.
+func Always{{sel "Name"}}SpellWith(bm *{{sel "Name"}}Spell, cb {{sel "Name"}}ResponseCallback) Spell {
+	return &once{{sel "Name"}}Spell{spell: bm, callback: cb}
+}
+
+type once{{sel "Name"}}Spell struct {
+	callback {{sel "Name"}}ResponseCallback
+	spell *{{sel "Name"}}Spell
+}
+
+// Exec excutes the spell and adds the neccessary callback.
+func (cm *once{{sel "Name"}}Spell) Exec(ctx CancelContext) error {
+	return cm.spell.Exec(ctx, cm.callback)
+}
+
+// {{sel "Name"}}Spell defines a structure which implements the Spell interface
+// for executing of docker based commands for {{sel "Name"}}.
+type {{sel "Name"}}Spell struct {
+	client       *client.Client
+	{{ range (attrs "arguments") }}
+	{{.}}
+	{{end}}
+}
+
+{{ $argString := intsToString (attrs "arguments") }}
+{{ $args := join (doPrefix (doCutSplit $argString " " 0) "cm.") ", " }}
+{{ $retString := doTimesPrefix (lenOf (attrs "return")) "ret"}}
+{{ $rets := join $retString "," }}
+
+// Exec executes the image creation for the underline docker server pointed to.
+func (cm *{{sel "Name"}}Spell) Exec(ctx CancelContext, callback {{sel "Name"}}ResponseCallback) error {
+	// Execute client {{sel "Name"}} method.
+	{{ if lenNotEqual (attrs "return") 0 }} {{$rets}}, err := cm.client.{{sel "Name"}}({{$args}}) {{ else }} err := cm.client.{{sel "Name"}}({{$args}}) {{ end }}
+	if err != nil {
+		return err
+	}
+
+	if callback != nil {
+		return callback({{ $rets }})
+	}
+
+	return nil
+}

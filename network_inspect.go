@@ -1,0 +1,59 @@
+package dockish
+
+import (
+	"github.com/docker/docker/api/types"
+	"github.com/moby/moby/client"
+)
+
+// NetworkInspect returns a new NetworkInspectSpell instance to be executed on the client.
+func (d *DockerCaster) NetworkInspect(netOp types.NetworkInspectOptions) (*NetworkInspectSpell, error) {
+	var spell NetworkInspectSpell
+
+	spell.netOp = netOp
+
+	return &spell, nil
+}
+
+// NetworkInspectSpell defines a function type to modify internal fields of the NetworkInspectSpell.
+type NetworkInspectOptions func(*NetworkInspectSpell)
+
+// NetworkInspectResponseCallback defines a function type for NetworkInspectSpell response.
+type NetworkInspectResponseCallback func(types.NetworkResource) error
+
+// AlwaysNetworkInspectSpellWith returns a object that always executes the provided NetworkInspectSpell with the provided callback.
+func AlwaysNetworkInspectSpellWith(bm *NetworkInspectSpell, cb NetworkInspectResponseCallback) Spell {
+	return &onceNetworkInspectSpell{spell: bm, callback: cb}
+}
+
+type onceNetworkInspectSpell struct {
+	callback NetworkInspectResponseCallback
+	spell    *NetworkInspectSpell
+}
+
+// Exec excutes the spell and adds the neccessary callback.
+func (cm *onceNetworkInspectSpell) Exec(ctx CancelContext) error {
+	return cm.spell.Exec(ctx, cm.callback)
+}
+
+// NetworkInspectSpell defines a structure which implements the Spell interface
+// for executing of docker based commands for NetworkInspect.
+type NetworkInspectSpell struct {
+	client *client.Client
+
+	netOp types.NetworkInspectOptions
+}
+
+// Exec executes the image creation for the underline docker server pointed to.
+func (cm *NetworkInspectSpell) Exec(ctx CancelContext, callback NetworkInspectResponseCallback) error {
+	// Execute client NetworkInspect method.
+	ret0, err := cm.client.NetworkInspect(cm.netOp)
+	if err != nil {
+		return err
+	}
+
+	if callback != nil {
+		return callback(ret0)
+	}
+
+	return nil
+}
