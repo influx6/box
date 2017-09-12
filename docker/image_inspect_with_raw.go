@@ -2,6 +2,7 @@ package docker
 
 import (
 	"github.com/docker/docker/api/types"
+	"github.com/influx6/box"
 	"github.com/moby/moby/client"
 )
 
@@ -19,7 +20,7 @@ type ImageInspectWithRawOptions func(*ImageInspectWithRawSpell)
 type ImageInspectWithRawResponseCallback func(types.ImageInspect) error
 
 // AlwaysImageInspectWithRawSpellWith returns a object that always executes the provided ImageInspectWithRawSpell with the provided callback.
-func AlwaysImageInspectWithRawSpellWith(bm *ImageInspectWithRawSpell, cb ImageInspectWithRawResponseCallback) Spell {
+func AlwaysImageInspectWithRawSpellWith(bm *ImageInspectWithRawSpell, cb ImageInspectWithRawResponseCallback) box.Spell {
 	return &onceImageInspectWithRawSpell{spell: bm, callback: cb}
 }
 
@@ -29,7 +30,7 @@ type onceImageInspectWithRawSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceImageInspectWithRawSpell) Exec(ctx CancelContext) error {
+func (cm *onceImageInspectWithRawSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -40,7 +41,7 @@ type ImageInspectWithRawSpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ImageInspectWithRawSpell) Exec(ctx CancelContext, callback ImageInspectWithRawResponseCallback) error {
+func (cm *ImageInspectWithRawSpell) Exec(ctx box.CancelContext, callback ImageInspectWithRawResponseCallback) error {
 	// Execute client ImageInspectWithRaw method.
 	ret0, err := cm.client.ImageInspectWithRaw()
 	if err != nil {

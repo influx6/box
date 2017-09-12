@@ -2,6 +2,7 @@ package docker
 
 import (
 	"github.com/docker/docker/api/types"
+	"github.com/influx6/box"
 	"github.com/moby/moby/client"
 )
 
@@ -21,7 +22,7 @@ type EventsOptions func(*EventsSpell)
 type EventsResponseCallback func() error
 
 // AlwaysEventsSpellWith returns a object that always executes the provided EventsSpell with the provided callback.
-func AlwaysEventsSpellWith(bm *EventsSpell, cb EventsResponseCallback) Spell {
+func AlwaysEventsSpellWith(bm *EventsSpell, cb EventsResponseCallback) box.Spell {
 	return &onceEventsSpell{spell: bm, callback: cb}
 }
 
@@ -31,7 +32,7 @@ type onceEventsSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceEventsSpell) Exec(ctx CancelContext) error {
+func (cm *onceEventsSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -44,7 +45,7 @@ type EventsSpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *EventsSpell) Exec(ctx CancelContext, callback EventsResponseCallback) error {
+func (cm *EventsSpell) Exec(ctx box.CancelContext, callback EventsResponseCallback) error {
 	// Execute client Events method.
 	err := cm.client.Events(cm.eventOp)
 	if err != nil {

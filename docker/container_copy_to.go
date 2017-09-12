@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/docker/docker/api/types"
+	"github.com/influx6/box"
 	"github.com/moby/moby/client"
 )
 
@@ -29,7 +30,7 @@ type CopyToContainerOptions func(*CopyToContainerSpell)
 type CopyToContainerResponseCallback func() error
 
 // AlwaysCopyToContainerSpellWith returns a object that always executes the provided CopyToContainerSpell with the provided callback.
-func AlwaysCopyToContainerSpellWith(bm *CopyToContainerSpell, cb CopyToContainerResponseCallback) Spell {
+func AlwaysCopyToContainerSpellWith(bm *CopyToContainerSpell, cb CopyToContainerResponseCallback) box.Spell {
 	return &onceCopyToContainerSpell{spell: bm, callback: cb}
 }
 
@@ -39,7 +40,7 @@ type onceCopyToContainerSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceCopyToContainerSpell) Exec(ctx CancelContext) error {
+func (cm *onceCopyToContainerSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -58,7 +59,7 @@ type CopyToContainerSpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *CopyToContainerSpell) Exec(ctx CancelContext, callback CopyToContainerResponseCallback) error {
+func (cm *CopyToContainerSpell) Exec(ctx box.CancelContext, callback CopyToContainerResponseCallback) error {
 	// Execute client CopyToContainer method.
 	err := cm.client.CopyToContainer(cm.container, cm.topath, cm.reader, cm.cops)
 	if err != nil {

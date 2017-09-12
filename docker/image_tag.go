@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"github.com/influx6/box"
 	"github.com/moby/moby/client"
 )
 
@@ -20,7 +21,7 @@ type ImageTagOptions func(*ImageTagSpell)
 type ImageTagResponseCallback func() error
 
 // AlwaysImageTagSpellWith returns a object that always executes the provided ImageTagSpell with the provided callback.
-func AlwaysImageTagSpellWith(bm *ImageTagSpell, cb ImageTagResponseCallback) Spell {
+func AlwaysImageTagSpellWith(bm *ImageTagSpell, cb ImageTagResponseCallback) box.Spell {
 	return &onceImageTagSpell{spell: bm, callback: cb}
 }
 
@@ -30,7 +31,7 @@ type onceImageTagSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceImageTagSpell) Exec(ctx CancelContext) error {
+func (cm *onceImageTagSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -43,7 +44,7 @@ type ImageTagSpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ImageTagSpell) Exec(ctx CancelContext, callback ImageTagResponseCallback) error {
+func (cm *ImageTagSpell) Exec(ctx box.CancelContext, callback ImageTagResponseCallback) error {
 	// Execute client ImageTag method.
 	err := cm.client.ImageTag(cm.tag)
 	if err != nil {

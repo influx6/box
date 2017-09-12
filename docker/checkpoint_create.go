@@ -2,6 +2,7 @@ package docker
 
 import (
 	"github.com/docker/docker/api/types"
+	"github.com/influx6/box"
 	"github.com/moby/moby/client"
 )
 
@@ -23,7 +24,7 @@ type CheckpointCreateOptions func(*CheckpointCreateSpell)
 type CheckpointCreateResponseCallback func() error
 
 // AlwaysCheckpointCreateSpellWith returns a object that always executes the provided CheckpointCreateSpell with the provided callback.
-func AlwaysCheckpointCreateSpellWith(bm *CheckpointCreateSpell, cb CheckpointCreateResponseCallback) Spell {
+func AlwaysCheckpointCreateSpellWith(bm *CheckpointCreateSpell, cb CheckpointCreateResponseCallback) box.Spell {
 	return &onceCheckpointCreateSpell{spell: bm, callback: cb}
 }
 
@@ -33,7 +34,7 @@ type onceCheckpointCreateSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceCheckpointCreateSpell) Exec(ctx CancelContext) error {
+func (cm *onceCheckpointCreateSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -48,7 +49,7 @@ type CheckpointCreateSpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *CheckpointCreateSpell) Exec(ctx CancelContext, callback CheckpointCreateResponseCallback) error {
+func (cm *CheckpointCreateSpell) Exec(ctx box.CancelContext, callback CheckpointCreateResponseCallback) error {
 	// Execute client CheckpointCreate method.
 	err := cm.client.CheckpointCreate(cm.container, cm.chop)
 	if err != nil {

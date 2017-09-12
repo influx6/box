@@ -2,6 +2,7 @@ package docker
 
 import (
 	"github.com/docker/docker/api/types/image"
+	"github.com/influx6/box"
 	"github.com/moby/moby/client"
 )
 
@@ -19,7 +20,7 @@ type ImageHistoryOptions func(*ImageHistorySpell)
 type ImageHistoryResponseCallback func(image.HistoryResponseItem) error
 
 // AlwaysImageHistorySpellWith returns a object that always executes the provided ImageHistorySpell with the provided callback.
-func AlwaysImageHistorySpellWith(bm *ImageHistorySpell, cb ImageHistoryResponseCallback) Spell {
+func AlwaysImageHistorySpellWith(bm *ImageHistorySpell, cb ImageHistoryResponseCallback) box.Spell {
 	return &onceImageHistorySpell{spell: bm, callback: cb}
 }
 
@@ -29,7 +30,7 @@ type onceImageHistorySpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceImageHistorySpell) Exec(ctx CancelContext) error {
+func (cm *onceImageHistorySpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -40,7 +41,7 @@ type ImageHistorySpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ImageHistorySpell) Exec(ctx CancelContext, callback ImageHistoryResponseCallback) error {
+func (cm *ImageHistorySpell) Exec(ctx box.CancelContext, callback ImageHistoryResponseCallback) error {
 	// Execute client ImageHistory method.
 	ret0, err := cm.client.ImageHistory()
 	if err != nil {

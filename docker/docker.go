@@ -13,16 +13,6 @@ var (
 	ErrNoImageBuildOptionProvided = errors.New("No types.ImageBuildOptions was provided")
 )
 
-// CancelContext defines a type which provides Done signal for cancelling operations.
-type CancelContext interface {
-	Done() <-chan struct{}
-}
-
-// Spell defines an interface which expose an exec method.
-type Spell interface {
-	Exec(CancelContext) error
-}
-
 // DockerCaster provides the central structure that provides methods for executing different
 // operations on a docker client. It instantiates the docker client and
 // passes all necessary details to different spells.

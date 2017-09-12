@@ -2,6 +2,7 @@ package docker
 
 import (
 	"github.com/docker/docker/api/types"
+	"github.com/influx6/box"
 	"github.com/moby/moby/client"
 )
 
@@ -21,7 +22,7 @@ type NetworkCreateOptions func(*NetworkCreateSpell)
 type NetworkCreateResponseCallback func(types.NetworkCreateResponse) error
 
 // AlwaysNetworkCreateSpellWith returns a object that always executes the provided NetworkCreateSpell with the provided callback.
-func AlwaysNetworkCreateSpellWith(bm *NetworkCreateSpell, cb NetworkCreateResponseCallback) Spell {
+func AlwaysNetworkCreateSpellWith(bm *NetworkCreateSpell, cb NetworkCreateResponseCallback) box.Spell {
 	return &onceNetworkCreateSpell{spell: bm, callback: cb}
 }
 
@@ -31,7 +32,7 @@ type onceNetworkCreateSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceNetworkCreateSpell) Exec(ctx CancelContext) error {
+func (cm *onceNetworkCreateSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -44,7 +45,7 @@ type NetworkCreateSpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *NetworkCreateSpell) Exec(ctx CancelContext, callback NetworkCreateResponseCallback) error {
+func (cm *NetworkCreateSpell) Exec(ctx box.CancelContext, callback NetworkCreateResponseCallback) error {
 	// Execute client NetworkCreate method.
 	ret0, err := cm.client.NetworkCreate(cm.network)
 	if err != nil {

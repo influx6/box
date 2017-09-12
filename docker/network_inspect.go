@@ -2,6 +2,7 @@ package docker
 
 import (
 	"github.com/docker/docker/api/types"
+	"github.com/influx6/box"
 	"github.com/moby/moby/client"
 )
 
@@ -21,7 +22,7 @@ type NetworkInspectOptions func(*NetworkInspectSpell)
 type NetworkInspectResponseCallback func(types.NetworkResource) error
 
 // AlwaysNetworkInspectSpellWith returns a object that always executes the provided NetworkInspectSpell with the provided callback.
-func AlwaysNetworkInspectSpellWith(bm *NetworkInspectSpell, cb NetworkInspectResponseCallback) Spell {
+func AlwaysNetworkInspectSpellWith(bm *NetworkInspectSpell, cb NetworkInspectResponseCallback) box.Spell {
 	return &onceNetworkInspectSpell{spell: bm, callback: cb}
 }
 
@@ -31,7 +32,7 @@ type onceNetworkInspectSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceNetworkInspectSpell) Exec(ctx CancelContext) error {
+func (cm *onceNetworkInspectSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -44,7 +45,7 @@ type NetworkInspectSpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *NetworkInspectSpell) Exec(ctx CancelContext, callback NetworkInspectResponseCallback) error {
+func (cm *NetworkInspectSpell) Exec(ctx box.CancelContext, callback NetworkInspectResponseCallback) error {
 	// Execute client NetworkInspect method.
 	ret0, err := cm.client.NetworkInspect(cm.netOp)
 	if err != nil {

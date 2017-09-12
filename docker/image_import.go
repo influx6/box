@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/docker/docker/api/types"
+	"github.com/influx6/box"
 	"github.com/moby/moby/client"
 )
 
@@ -23,7 +24,7 @@ type ImageImportOptions func(*ImageImportSpell)
 type ImageImportResponseCallback func(io.ReadCloser) error
 
 // AlwaysImageImportSpellWith returns a object that always executes the provided ImageImportSpell with the provided callback.
-func AlwaysImageImportSpellWith(bm *ImageImportSpell, cb ImageImportResponseCallback) Spell {
+func AlwaysImageImportSpellWith(bm *ImageImportSpell, cb ImageImportResponseCallback) box.Spell {
 	return &onceImageImportSpell{spell: bm, callback: cb}
 }
 
@@ -33,7 +34,7 @@ type onceImageImportSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceImageImportSpell) Exec(ctx CancelContext) error {
+func (cm *onceImageImportSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -46,7 +47,7 @@ type ImageImportSpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ImageImportSpell) Exec(ctx CancelContext, callback ImageImportResponseCallback) error {
+func (cm *ImageImportSpell) Exec(ctx box.CancelContext, callback ImageImportResponseCallback) error {
 	// Execute client ImageImport method.
 	ret0, err := cm.client.ImageImport(cm.impOp)
 	if err != nil {

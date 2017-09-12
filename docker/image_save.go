@@ -3,6 +3,7 @@ package docker
 import (
 	"io"
 
+	"github.com/influx6/box"
 	"github.com/moby/moby/client"
 )
 
@@ -22,7 +23,7 @@ type ImageSaveOptions func(*ImageSaveSpell)
 type ImageSaveResponseCallback func(io.ReadCloser) error
 
 // AlwaysImageSaveSpellWith returns a object that always executes the provided ImageSaveSpell with the provided callback.
-func AlwaysImageSaveSpellWith(bm *ImageSaveSpell, cb ImageSaveResponseCallback) Spell {
+func AlwaysImageSaveSpellWith(bm *ImageSaveSpell, cb ImageSaveResponseCallback) box.Spell {
 	return &onceImageSaveSpell{spell: bm, callback: cb}
 }
 
@@ -32,7 +33,7 @@ type onceImageSaveSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceImageSaveSpell) Exec(ctx CancelContext) error {
+func (cm *onceImageSaveSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -45,7 +46,7 @@ type ImageSaveSpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ImageSaveSpell) Exec(ctx CancelContext, callback ImageSaveResponseCallback) error {
+func (cm *ImageSaveSpell) Exec(ctx box.CancelContext, callback ImageSaveResponseCallback) error {
 	// Execute client ImageSave method.
 	ret0, err := cm.client.ImageSave(cm.ops)
 	if err != nil {

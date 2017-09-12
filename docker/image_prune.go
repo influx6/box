@@ -2,6 +2,7 @@ package docker
 
 import (
 	"github.com/docker/docker/api/types"
+	"github.com/influx6/box"
 	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/client"
 )
@@ -22,7 +23,7 @@ type ImagePruneOptions func(*ImagePruneSpell)
 type ImagePruneResponseCallback func(types.ImagesPruneReport) error
 
 // AlwaysImagePruneSpellWith returns a object that always executes the provided ImagePruneSpell with the provided callback.
-func AlwaysImagePruneSpellWith(bm *ImagePruneSpell, cb ImagePruneResponseCallback) Spell {
+func AlwaysImagePruneSpellWith(bm *ImagePruneSpell, cb ImagePruneResponseCallback) box.Spell {
 	return &onceImagePruneSpell{spell: bm, callback: cb}
 }
 
@@ -32,7 +33,7 @@ type onceImagePruneSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceImagePruneSpell) Exec(ctx CancelContext) error {
+func (cm *onceImagePruneSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -45,7 +46,7 @@ type ImagePruneSpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ImagePruneSpell) Exec(ctx CancelContext, callback ImagePruneResponseCallback) error {
+func (cm *ImagePruneSpell) Exec(ctx box.CancelContext, callback ImagePruneResponseCallback) error {
 	// Execute client ImagePrune method.
 	ret0, err := cm.client.ImagePrune(cm.args)
 	if err != nil {

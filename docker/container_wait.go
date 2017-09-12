@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"github.com/influx6/box"
 	"github.com/moby/moby/client"
 	"github.com/moby/moby/container"
 )
@@ -23,7 +24,7 @@ type ContainerWaitOptions func(*ContainerWaitSpell)
 type ContainerWaitResponseCallback func() error
 
 // AlwaysContainerWaitSpellWith returns a object that always executes the provided ContainerWaitSpell with the provided callback.
-func AlwaysContainerWaitSpellWith(bm *ContainerWaitSpell, cb ContainerWaitResponseCallback) Spell {
+func AlwaysContainerWaitSpellWith(bm *ContainerWaitSpell, cb ContainerWaitResponseCallback) box.Spell {
 	return &onceContainerWaitSpell{spell: bm, callback: cb}
 }
 
@@ -33,7 +34,7 @@ type onceContainerWaitSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceContainerWaitSpell) Exec(ctx CancelContext) error {
+func (cm *onceContainerWaitSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -48,7 +49,7 @@ type ContainerWaitSpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ContainerWaitSpell) Exec(ctx CancelContext, callback ContainerWaitResponseCallback) error {
+func (cm *ContainerWaitSpell) Exec(ctx box.CancelContext, callback ContainerWaitResponseCallback) error {
 	// Execute client ContainerWait method.
 	err := cm.client.ContainerWait(cm.containerID, cm.container)
 	if err != nil {

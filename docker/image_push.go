@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/docker/docker/api/types"
+	"github.com/influx6/box"
 	"github.com/moby/moby/client"
 )
 
@@ -23,7 +24,7 @@ type ImagePushOptions func(*ImagePushSpell)
 type ImagePushResponseCallback func(io.ReadCloser) error
 
 // AlwaysImagePushSpellWith returns a object that always executes the provided ImagePushSpell with the provided callback.
-func AlwaysImagePushSpellWith(bm *ImagePushSpell, cb ImagePushResponseCallback) Spell {
+func AlwaysImagePushSpellWith(bm *ImagePushSpell, cb ImagePushResponseCallback) box.Spell {
 	return &onceImagePushSpell{spell: bm, callback: cb}
 }
 
@@ -33,7 +34,7 @@ type onceImagePushSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceImagePushSpell) Exec(ctx CancelContext) error {
+func (cm *onceImagePushSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -46,7 +47,7 @@ type ImagePushSpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ImagePushSpell) Exec(ctx CancelContext, callback ImagePushResponseCallback) error {
+func (cm *ImagePushSpell) Exec(ctx box.CancelContext, callback ImagePushResponseCallback) error {
 	// Execute client ImagePush method.
 	ret0, err := cm.client.ImagePush(cm.imp)
 	if err != nil {

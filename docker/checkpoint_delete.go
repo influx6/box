@@ -2,6 +2,7 @@ package docker
 
 import (
 	"github.com/docker/docker/api/types"
+	"github.com/influx6/box"
 	"github.com/moby/moby/client"
 )
 
@@ -23,7 +24,7 @@ type CheckpointDeleteOptions func(*CheckpointDeleteSpell)
 type CheckpointDeleteResponseCallback func() error
 
 // AlwaysCheckpointDeleteSpellWith returns a object that always executes the provided CheckpointDeleteSpell with the provided callback.
-func AlwaysCheckpointDeleteSpellWith(bm *CheckpointDeleteSpell, cb CheckpointDeleteResponseCallback) Spell {
+func AlwaysCheckpointDeleteSpellWith(bm *CheckpointDeleteSpell, cb CheckpointDeleteResponseCallback) box.Spell {
 	return &onceCheckpointDeleteSpell{spell: bm, callback: cb}
 }
 
@@ -33,7 +34,7 @@ type onceCheckpointDeleteSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceCheckpointDeleteSpell) Exec(ctx CancelContext) error {
+func (cm *onceCheckpointDeleteSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -48,7 +49,7 @@ type CheckpointDeleteSpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *CheckpointDeleteSpell) Exec(ctx CancelContext, callback CheckpointDeleteResponseCallback) error {
+func (cm *CheckpointDeleteSpell) Exec(ctx box.CancelContext, callback CheckpointDeleteResponseCallback) error {
 	// Execute client CheckpointDelete method.
 	err := cm.client.CheckpointDelete(cm.container, cm.chop)
 	if err != nil {

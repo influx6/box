@@ -7,7 +7,7 @@ import (
 	"io"
 
 	"github.com/docker/docker/api/types"
-	"github.com/influx6/dockish/docker"
+	"github.com/influx6/box/docker"
 	"github.com/influx6/moz/gen/filesystem"
 	"github.com/moby/moby/client"
 )

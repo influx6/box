@@ -2,6 +2,7 @@ package docker
 
 import (
 	"github.com/docker/docker/api/types"
+	"github.com/influx6/box"
 	"github.com/moby/moby/client"
 )
 
@@ -21,7 +22,7 @@ type ImageRemoveOptions func(*ImageRemoveSpell)
 type ImageRemoveResponseCallback func([]types.ImageDeleteResponseItem) error
 
 // AlwaysImageRemoveSpellWith returns a object that always executes the provided ImageRemoveSpell with the provided callback.
-func AlwaysImageRemoveSpellWith(bm *ImageRemoveSpell, cb ImageRemoveResponseCallback) Spell {
+func AlwaysImageRemoveSpellWith(bm *ImageRemoveSpell, cb ImageRemoveResponseCallback) box.Spell {
 	return &onceImageRemoveSpell{spell: bm, callback: cb}
 }
 
@@ -31,7 +32,7 @@ type onceImageRemoveSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceImageRemoveSpell) Exec(ctx CancelContext) error {
+func (cm *onceImageRemoveSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -44,7 +45,7 @@ type ImageRemoveSpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ImageRemoveSpell) Exec(ctx CancelContext, callback ImageRemoveResponseCallback) error {
+func (cm *ImageRemoveSpell) Exec(ctx box.CancelContext, callback ImageRemoveResponseCallback) error {
 	// Execute client ImageRemove method.
 	ret0, err := cm.client.ImageRemove(cm.removeOps)
 	if err != nil {

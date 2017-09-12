@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"github.com/influx6/box"
 	"github.com/moby/moby/client"
 )
 
@@ -20,7 +21,7 @@ type NetworkDisconnectOptions func(*NetworkDisconnectSpell)
 type NetworkDisconnectResponseCallback func() error
 
 // AlwaysNetworkDisconnectSpellWith returns a object that always executes the provided NetworkDisconnectSpell with the provided callback.
-func AlwaysNetworkDisconnectSpellWith(bm *NetworkDisconnectSpell, cb NetworkDisconnectResponseCallback) Spell {
+func AlwaysNetworkDisconnectSpellWith(bm *NetworkDisconnectSpell, cb NetworkDisconnectResponseCallback) box.Spell {
 	return &onceNetworkDisconnectSpell{spell: bm, callback: cb}
 }
 
@@ -30,7 +31,7 @@ type onceNetworkDisconnectSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceNetworkDisconnectSpell) Exec(ctx CancelContext) error {
+func (cm *onceNetworkDisconnectSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -43,7 +44,7 @@ type NetworkDisconnectSpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *NetworkDisconnectSpell) Exec(ctx CancelContext, callback NetworkDisconnectResponseCallback) error {
+func (cm *NetworkDisconnectSpell) Exec(ctx box.CancelContext, callback NetworkDisconnectResponseCallback) error {
 	// Execute client NetworkDisconnect method.
 	err := cm.client.NetworkDisconnect(cm.networkID)
 	if err != nil {

@@ -2,6 +2,7 @@ package docker
 
 import (
 	"github.com/docker/docker/api/types"
+	"github.com/influx6/box"
 	"github.com/moby/moby/client"
 )
 
@@ -21,7 +22,7 @@ type ImageListOptions func(*ImageListSpell)
 type ImageListResponseCallback func([]types.ImageSummary) error
 
 // AlwaysImageListSpellWith returns a object that always executes the provided ImageListSpell with the provided callback.
-func AlwaysImageListSpellWith(bm *ImageListSpell, cb ImageListResponseCallback) Spell {
+func AlwaysImageListSpellWith(bm *ImageListSpell, cb ImageListResponseCallback) box.Spell {
 	return &onceImageListSpell{spell: bm, callback: cb}
 }
 
@@ -31,7 +32,7 @@ type onceImageListSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceImageListSpell) Exec(ctx CancelContext) error {
+func (cm *onceImageListSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -44,7 +45,7 @@ type ImageListSpell struct {
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ImageListSpell) Exec(ctx CancelContext, callback ImageListResponseCallback) error {
+func (cm *ImageListSpell) Exec(ctx box.CancelContext, callback ImageListResponseCallback) error {
 	// Execute client ImageList method.
 	ret0, err := cm.client.ImageList(cm.listOps)
 	if err != nil {
