@@ -7,7 +7,7 @@ import (
 	"io"
 
 	"github.com/docker/docker/api/types"
-	"github.com/influx6/dockish"
+	"github.com/influx6/dockish/docker"
 	"github.com/influx6/moz/gen/filesystem"
 	"github.com/moby/moby/client"
 )
@@ -19,7 +19,7 @@ func main() {
 		panic(err)
 	}
 
-	docker := dockish.New(client)
+	image := docker.New(client)
 
 	base := filesystem.FileSystem(
 		filesystem.File(
@@ -33,7 +33,7 @@ func main() {
 		),
 	)
 
-	builder, err := docker.BuildImage("wombat", filesystem.GzipTarFS(base))
+	builder, err := image.BuildImage("wombat", filesystem.GzipTarFS(base))
 
 	if err != nil {
 		panic(err)

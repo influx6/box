@@ -24,6 +24,13 @@ func (d *DockerCaster) {{sel "Name"}}({{if lenNotEqual (attrs "arguments") 0 }} 
 	return &spell, nil
 }
 
+{{ $argString := intsToString (attrs "arguments") }}
+{{ $varNames := doCutSplit $argString " " 0 }}
+{{ $varTypes := doCutSplit $argString " " 1 }}
+{{ $args := join (doPrefix $varNames "cm.") ", " }}
+{{ $retString := doTimesPrefix (lenOf (attrs "return")) "ret"}}
+{{ $rets := join $retString "," }}
+
 // {{sel "Name"}}Spell defines a function type to modify internal fields of the {{sel "Name"}}Spell.
 type {{sel "Name"}}Options func(*{{sel "Name"}}Spell)
 
@@ -54,10 +61,6 @@ type {{sel "Name"}}Spell struct {
 	{{end}}
 }
 
-{{ $argString := intsToString (attrs "arguments") }}
-{{ $args := join (doPrefix (doCutSplit $argString " " 0) "cm.") ", " }}
-{{ $retString := doTimesPrefix (lenOf (attrs "return")) "ret"}}
-{{ $rets := join $retString "," }}
 
 // Exec executes the image creation for the underline docker server pointed to.
 func (cm *{{sel "Name"}}Spell) Exec(ctx CancelContext, callback {{sel "Name"}}ResponseCallback) error {

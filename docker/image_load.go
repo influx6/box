@@ -1,4 +1,4 @@
-package dockish
+package docker
 
 import (
 	"io"

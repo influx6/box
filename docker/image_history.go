@@ -1,4 +1,4 @@
-package dockish
+package docker
 
 import (
 	"github.com/docker/docker/api/types/image"
