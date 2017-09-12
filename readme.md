@@ -13,6 +13,7 @@ Tagging docker image as "geth-bin"
 Using docker host: /var/socket/docker.socket
 
 Run `dockish push` to deliver image to docker repo.
+Run `docker push REMOTE_DOCKER_HOST` to deliver image to run docker host.
 ```
 
 ```bash
