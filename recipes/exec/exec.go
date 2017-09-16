@@ -24,6 +24,14 @@ func Command(c string) CommanderOption {
 	}
 }
 
+// Binary sets the binary command for the Commander.
+func Binary(bin string, flag string) CommanderOption {
+	return func(cm *Commander) {
+		cm.Binary = bin
+		cm.Flag = flag
+	}
+}
+
 // Sync sets the commander to run in synchronouse mode.
 func Sync() CommanderOption {
 	return SetAsync(false)
@@ -71,9 +79,13 @@ func Envs(envs map[string]string) CommanderOption {
 
 // Commander runs provided command within a /bin/sh -c "{COMMAND}", returning
 // response associatedly. It also attaches if provided stdin, stdout and stderr readers/writers.
+// Commander allows you to set the binary to use and flag, where each defaults to /bin/sh for binary
+// and -c for flag respectively.
 type Commander struct {
 	Async   bool
 	Command string
+	Binary  string
+	Flag    string
 	Envs    map[string]string
 	In      io.Reader
 	Out     io.Writer
@@ -95,11 +107,19 @@ func New(ops ...CommanderOption) *Commander {
 func (c *Commander) Exec(ctx context.CancelContext) error {
 	var cmder *exec.Cmd
 
+	if c.Binary == "" {
+		c.Binary = "/bin/sh"
+	}
+
+	if c.Flag == "" {
+		c.Flag = "-c"
+	}
+
 	switch {
 	case c.Command == "":
-		cmder = exec.Command("/bin/sh")
+		cmder = exec.Command(c.Binary)
 	case c.Command != "":
-		cmder = exec.Command("/bin/sh", "-c", c.Command)
+		cmder = exec.Command(c.Binary, c.Flag, c.Command)
 	}
 
 	cmder.Stderr = c.Err
@@ -112,6 +132,7 @@ func (c *Commander) Exec(ctx context.CancelContext) error {
 			cmder.Env = append(cmder.Env, fmt.Sprintf("%s=%s", name, val))
 		}
 	}
+
 	if !c.Async {
 		return cmder.Run()
 	}
