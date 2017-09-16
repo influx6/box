@@ -23,9 +23,19 @@ type ContainerWaitOptions func(*ContainerWaitSpell)
 // ContainerWaitResponseCallback defines a function type for ContainerWaitSpell response.
 type ContainerWaitResponseCallback func() error
 
-// AlwaysContainerWaitSpellWith returns a object that always executes the provided ContainerWaitSpell with the provided callback.
-func AlwaysContainerWaitSpellWith(bm *ContainerWaitSpell, cb ContainerWaitResponseCallback) box.Spell {
-	return &onceContainerWaitSpell{spell: bm, callback: cb}
+// ContainerWaitSpell defines a structure which implements the Spell interface
+// for executing of docker based commands for ContainerWait.
+type ContainerWaitSpell struct {
+	client *client.Client
+
+	containerID string
+
+	container container.WaitCondition
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *ContainerWaitSpell) Spell(callback ContainerWaitResponseCallback) box.Spell {
+	return &onceContainerWaitSpell{spell: cm, callback: cb}
 }
 
 type onceContainerWaitSpell struct {
@@ -36,16 +46,6 @@ type onceContainerWaitSpell struct {
 // Exec excutes the spell and adds the neccessary callback.
 func (cm *onceContainerWaitSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
-}
-
-// ContainerWaitSpell defines a structure which implements the Spell interface
-// for executing of docker based commands for ContainerWait.
-type ContainerWaitSpell struct {
-	client *client.Client
-
-	containerID string
-
-	container container.WaitCondition
 }
 
 // Exec executes the image creation for the underline docker server pointed to.

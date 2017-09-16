@@ -38,9 +38,18 @@ type {{sel "Name"}}Options func(*{{sel "Name"}}Spell)
 // {{sel "Name"}}ResponseCallback defines a function type for {{sel "Name"}}Spell response.
 type {{sel "Name"}}ResponseCallback func({{if lenNotEqual (attrs "return") 0 }} {{ joinInterface (attrs "return") ", " }} {{end}}) error
 
-// Always{{sel "Name"}}SpellWith returns a object that always executes the provided {{sel "Name"}}Spell with the provided callback.
-func Always{{sel "Name"}}SpellWith(bm *{{sel "Name"}}Spell, cb {{sel "Name"}}ResponseCallback) box.Spell {
-	return &once{{sel "Name"}}Spell{spell: bm, callback: cb}
+// {{sel "Name"}}Spell defines a structure which implements the Spell interface
+// for executing of docker based commands for {{sel "Name"}}.
+type {{sel "Name"}}Spell struct {
+	client       *client.Client
+	{{ range (attrs "arguments") }}
+	{{.}}
+	{{end}}
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *{{sel "Name"}}Spell) Spell(callback {{sel "Name"}}ResponseCallback) box.Spell {
+	return &once{{sel "Name"}}Spell{spell: cm, callback: cb}
 }
 
 type once{{sel "Name"}}Spell struct {
@@ -52,16 +61,6 @@ type once{{sel "Name"}}Spell struct {
 func (cm *once{{sel "Name"}}Spell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
-
-// {{sel "Name"}}Spell defines a structure which implements the Spell interface
-// for executing of docker based commands for {{sel "Name"}}.
-type {{sel "Name"}}Spell struct {
-	client       *client.Client
-	{{ range (attrs "arguments") }}
-	{{.}}
-	{{end}}
-}
-
 
 // Exec executes the image creation for the underline docker server pointed to.
 func (cm *{{sel "Name"}}Spell) Exec(ctx box.CancelContext, callback {{sel "Name"}}ResponseCallback) error {

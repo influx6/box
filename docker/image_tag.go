@@ -20,9 +20,17 @@ type ImageTagOptions func(*ImageTagSpell)
 // ImageTagResponseCallback defines a function type for ImageTagSpell response.
 type ImageTagResponseCallback func() error
 
-// AlwaysImageTagSpellWith returns a object that always executes the provided ImageTagSpell with the provided callback.
-func AlwaysImageTagSpellWith(bm *ImageTagSpell, cb ImageTagResponseCallback) box.Spell {
-	return &onceImageTagSpell{spell: bm, callback: cb}
+// ImageTagSpell defines a structure which implements the Spell interface
+// for executing of docker based commands for ImageTag.
+type ImageTagSpell struct {
+	client *client.Client
+
+	tag string
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *ImageTagSpell) Spell(callback ImageTagResponseCallback) box.Spell {
+	return &onceImageTagSpell{spell: cm, callback: cb}
 }
 
 type onceImageTagSpell struct {
@@ -33,14 +41,6 @@ type onceImageTagSpell struct {
 // Exec excutes the spell and adds the neccessary callback.
 func (cm *onceImageTagSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
-}
-
-// ImageTagSpell defines a structure which implements the Spell interface
-// for executing of docker based commands for ImageTag.
-type ImageTagSpell struct {
-	client *client.Client
-
-	tag string
 }
 
 // Exec executes the image creation for the underline docker server pointed to.

@@ -21,9 +21,17 @@ type NetworkInspectOptions func(*NetworkInspectSpell)
 // NetworkInspectResponseCallback defines a function type for NetworkInspectSpell response.
 type NetworkInspectResponseCallback func(types.NetworkResource) error
 
-// AlwaysNetworkInspectSpellWith returns a object that always executes the provided NetworkInspectSpell with the provided callback.
-func AlwaysNetworkInspectSpellWith(bm *NetworkInspectSpell, cb NetworkInspectResponseCallback) box.Spell {
-	return &onceNetworkInspectSpell{spell: bm, callback: cb}
+// NetworkInspectSpell defines a structure which implements the Spell interface
+// for executing of docker based commands for NetworkInspect.
+type NetworkInspectSpell struct {
+	client *client.Client
+
+	netOp types.NetworkInspectOptions
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *NetworkInspectSpell) Spell(callback NetworkInspectResponseCallback) box.Spell {
+	return &onceNetworkInspectSpell{spell: cm, callback: cb}
 }
 
 type onceNetworkInspectSpell struct {
@@ -34,14 +42,6 @@ type onceNetworkInspectSpell struct {
 // Exec excutes the spell and adds the neccessary callback.
 func (cm *onceNetworkInspectSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
-}
-
-// NetworkInspectSpell defines a structure which implements the Spell interface
-// for executing of docker based commands for NetworkInspect.
-type NetworkInspectSpell struct {
-	client *client.Client
-
-	netOp types.NetworkInspectOptions
 }
 
 // Exec executes the image creation for the underline docker server pointed to.

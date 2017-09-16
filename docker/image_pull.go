@@ -23,9 +23,17 @@ type ImagePullOptions func(*ImagePullSpell)
 // ImagePullResponseCallback defines a function type for ImagePullSpell response.
 type ImagePullResponseCallback func(io.ReadCloser) error
 
-// AlwaysImagePullSpellWith returns a object that always executes the provided ImagePullSpell with the provided callback.
-func AlwaysImagePullSpellWith(bm *ImagePullSpell, cb ImagePullResponseCallback) box.Spell {
-	return &onceImagePullSpell{spell: bm, callback: cb}
+// ImagePullSpell defines a structure which implements the Spell interface
+// for executing of docker based commands for ImagePull.
+type ImagePullSpell struct {
+	client *client.Client
+
+	imgOp types.ImagePullOptions
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *ImagePullSpell) Spell(callback ImagePullResponseCallback) box.Spell {
+	return &onceImagePullSpell{spell: cm, callback: cb}
 }
 
 type onceImagePullSpell struct {
@@ -36,14 +44,6 @@ type onceImagePullSpell struct {
 // Exec excutes the spell and adds the neccessary callback.
 func (cm *onceImagePullSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
-}
-
-// ImagePullSpell defines a structure which implements the Spell interface
-// for executing of docker based commands for ImagePull.
-type ImagePullSpell struct {
-	client *client.Client
-
-	imgOp types.ImagePullOptions
 }
 
 // Exec executes the image creation for the underline docker server pointed to.

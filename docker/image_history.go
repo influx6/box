@@ -19,9 +19,15 @@ type ImageHistoryOptions func(*ImageHistorySpell)
 // ImageHistoryResponseCallback defines a function type for ImageHistorySpell response.
 type ImageHistoryResponseCallback func(image.HistoryResponseItem) error
 
-// AlwaysImageHistorySpellWith returns a object that always executes the provided ImageHistorySpell with the provided callback.
-func AlwaysImageHistorySpellWith(bm *ImageHistorySpell, cb ImageHistoryResponseCallback) box.Spell {
-	return &onceImageHistorySpell{spell: bm, callback: cb}
+// ImageHistorySpell defines a structure which implements the Spell interface
+// for executing of docker based commands for ImageHistory.
+type ImageHistorySpell struct {
+	client *client.Client
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *ImageHistorySpell) Spell(callback ImageHistoryResponseCallback) box.Spell {
+	return &onceImageHistorySpell{spell: cm, callback: cb}
 }
 
 type onceImageHistorySpell struct {
@@ -32,12 +38,6 @@ type onceImageHistorySpell struct {
 // Exec excutes the spell and adds the neccessary callback.
 func (cm *onceImageHistorySpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
-}
-
-// ImageHistorySpell defines a structure which implements the Spell interface
-// for executing of docker based commands for ImageHistory.
-type ImageHistorySpell struct {
-	client *client.Client
 }
 
 // Exec executes the image creation for the underline docker server pointed to.

@@ -20,9 +20,17 @@ type NetworkDisconnectOptions func(*NetworkDisconnectSpell)
 // NetworkDisconnectResponseCallback defines a function type for NetworkDisconnectSpell response.
 type NetworkDisconnectResponseCallback func() error
 
-// AlwaysNetworkDisconnectSpellWith returns a object that always executes the provided NetworkDisconnectSpell with the provided callback.
-func AlwaysNetworkDisconnectSpellWith(bm *NetworkDisconnectSpell, cb NetworkDisconnectResponseCallback) box.Spell {
-	return &onceNetworkDisconnectSpell{spell: bm, callback: cb}
+// NetworkDisconnectSpell defines a structure which implements the Spell interface
+// for executing of docker based commands for NetworkDisconnect.
+type NetworkDisconnectSpell struct {
+	client *client.Client
+
+	networkID string
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *NetworkDisconnectSpell) Spell(callback NetworkDisconnectResponseCallback) box.Spell {
+	return &onceNetworkDisconnectSpell{spell: cm, callback: cb}
 }
 
 type onceNetworkDisconnectSpell struct {
@@ -33,14 +41,6 @@ type onceNetworkDisconnectSpell struct {
 // Exec excutes the spell and adds the neccessary callback.
 func (cm *onceNetworkDisconnectSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
-}
-
-// NetworkDisconnectSpell defines a structure which implements the Spell interface
-// for executing of docker based commands for NetworkDisconnect.
-type NetworkDisconnectSpell struct {
-	client *client.Client
-
-	networkID string
 }
 
 // Exec executes the image creation for the underline docker server pointed to.

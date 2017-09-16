@@ -23,9 +23,19 @@ type CheckpointCreateOptions func(*CheckpointCreateSpell)
 // CheckpointCreateResponseCallback defines a function type for CheckpointCreateSpell response.
 type CheckpointCreateResponseCallback func() error
 
-// AlwaysCheckpointCreateSpellWith returns a object that always executes the provided CheckpointCreateSpell with the provided callback.
-func AlwaysCheckpointCreateSpellWith(bm *CheckpointCreateSpell, cb CheckpointCreateResponseCallback) box.Spell {
-	return &onceCheckpointCreateSpell{spell: bm, callback: cb}
+// CheckpointCreateSpell defines a structure which implements the Spell interface
+// for executing of docker based commands for CheckpointCreate.
+type CheckpointCreateSpell struct {
+	client *client.Client
+
+	container string
+
+	chop types.CheckpointCreateOptions
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *CheckpointCreateSpell) Spell(callback CheckpointCreateResponseCallback) box.Spell {
+	return &onceCheckpointCreateSpell{spell: cm, callback: cb}
 }
 
 type onceCheckpointCreateSpell struct {
@@ -36,16 +46,6 @@ type onceCheckpointCreateSpell struct {
 // Exec excutes the spell and adds the neccessary callback.
 func (cm *onceCheckpointCreateSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
-}
-
-// CheckpointCreateSpell defines a structure which implements the Spell interface
-// for executing of docker based commands for CheckpointCreate.
-type CheckpointCreateSpell struct {
-	client *client.Client
-
-	container string
-
-	chop types.CheckpointCreateOptions
 }
 
 // Exec executes the image creation for the underline docker server pointed to.

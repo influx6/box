@@ -25,9 +25,19 @@ type CopyFromContainerOptions func(*CopyFromContainerSpell)
 // CopyFromContainerResponseCallback defines a function type for CopyFromContainerSpell response.
 type CopyFromContainerResponseCallback func(io.ReadCloser, types.ContainerPathStat) error
 
-// AlwaysCopyFromContainerSpellWith returns a object that always executes the provided CopyFromContainerSpell with the provided callback.
-func AlwaysCopyFromContainerSpellWith(bm *CopyFromContainerSpell, cb CopyFromContainerResponseCallback) box.Spell {
-	return &onceCopyFromContainerSpell{spell: bm, callback: cb}
+// CopyFromContainerSpell defines a structure which implements the Spell interface
+// for executing of docker based commands for CopyFromContainer.
+type CopyFromContainerSpell struct {
+	client *client.Client
+
+	container string
+
+	srcPath string
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *CopyFromContainerSpell) Spell(callback CopyFromContainerResponseCallback) box.Spell {
+	return &onceCopyFromContainerSpell{spell: cm, callback: cb}
 }
 
 type onceCopyFromContainerSpell struct {
@@ -38,16 +48,6 @@ type onceCopyFromContainerSpell struct {
 // Exec excutes the spell and adds the neccessary callback.
 func (cm *onceCopyFromContainerSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
-}
-
-// CopyFromContainerSpell defines a structure which implements the Spell interface
-// for executing of docker based commands for CopyFromContainer.
-type CopyFromContainerSpell struct {
-	client *client.Client
-
-	container string
-
-	srcPath string
 }
 
 // Exec executes the image creation for the underline docker server pointed to.

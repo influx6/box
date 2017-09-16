@@ -21,9 +21,17 @@ type NetworkCreateOptions func(*NetworkCreateSpell)
 // NetworkCreateResponseCallback defines a function type for NetworkCreateSpell response.
 type NetworkCreateResponseCallback func(types.NetworkCreateResponse) error
 
-// AlwaysNetworkCreateSpellWith returns a object that always executes the provided NetworkCreateSpell with the provided callback.
-func AlwaysNetworkCreateSpellWith(bm *NetworkCreateSpell, cb NetworkCreateResponseCallback) box.Spell {
-	return &onceNetworkCreateSpell{spell: bm, callback: cb}
+// NetworkCreateSpell defines a structure which implements the Spell interface
+// for executing of docker based commands for NetworkCreate.
+type NetworkCreateSpell struct {
+	client *client.Client
+
+	network types.NetworkCreate
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *NetworkCreateSpell) Spell(callback NetworkCreateResponseCallback) box.Spell {
+	return &onceNetworkCreateSpell{spell: cm, callback: cb}
 }
 
 type onceNetworkCreateSpell struct {
@@ -34,14 +42,6 @@ type onceNetworkCreateSpell struct {
 // Exec excutes the spell and adds the neccessary callback.
 func (cm *onceNetworkCreateSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
-}
-
-// NetworkCreateSpell defines a structure which implements the Spell interface
-// for executing of docker based commands for NetworkCreate.
-type NetworkCreateSpell struct {
-	client *client.Client
-
-	network types.NetworkCreate
 }
 
 // Exec executes the image creation for the underline docker server pointed to.

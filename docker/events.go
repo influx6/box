@@ -21,9 +21,17 @@ type EventsOptions func(*EventsSpell)
 // EventsResponseCallback defines a function type for EventsSpell response.
 type EventsResponseCallback func() error
 
-// AlwaysEventsSpellWith returns a object that always executes the provided EventsSpell with the provided callback.
-func AlwaysEventsSpellWith(bm *EventsSpell, cb EventsResponseCallback) box.Spell {
-	return &onceEventsSpell{spell: bm, callback: cb}
+// EventsSpell defines a structure which implements the Spell interface
+// for executing of docker based commands for Events.
+type EventsSpell struct {
+	client *client.Client
+
+	eventOp types.EventsOptions
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *EventsSpell) Spell(callback EventsResponseCallback) box.Spell {
+	return &onceEventsSpell{spell: cm, callback: cb}
 }
 
 type onceEventsSpell struct {
@@ -34,14 +42,6 @@ type onceEventsSpell struct {
 // Exec excutes the spell and adds the neccessary callback.
 func (cm *onceEventsSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
-}
-
-// EventsSpell defines a structure which implements the Spell interface
-// for executing of docker based commands for Events.
-type EventsSpell struct {
-	client *client.Client
-
-	eventOp types.EventsOptions
 }
 
 // Exec executes the image creation for the underline docker server pointed to.

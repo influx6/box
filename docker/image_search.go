@@ -22,9 +22,17 @@ type ImageSearchOptions func(*ImageSearchSpell)
 // ImageSearchResponseCallback defines a function type for ImageSearchSpell response.
 type ImageSearchResponseCallback func([]registry.SearchResult) error
 
-// AlwaysImageSearchSpellWith returns a object that always executes the provided ImageSearchSpell with the provided callback.
-func AlwaysImageSearchSpellWith(bm *ImageSearchSpell, cb ImageSearchResponseCallback) box.Spell {
-	return &onceImageSearchSpell{spell: bm, callback: cb}
+// ImageSearchSpell defines a structure which implements the Spell interface
+// for executing of docker based commands for ImageSearch.
+type ImageSearchSpell struct {
+	client *client.Client
+
+	searchOps types.ImageSearchOptions
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *ImageSearchSpell) Spell(callback ImageSearchResponseCallback) box.Spell {
+	return &onceImageSearchSpell{spell: cm, callback: cb}
 }
 
 type onceImageSearchSpell struct {
@@ -35,14 +43,6 @@ type onceImageSearchSpell struct {
 // Exec excutes the spell and adds the neccessary callback.
 func (cm *onceImageSearchSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
-}
-
-// ImageSearchSpell defines a structure which implements the Spell interface
-// for executing of docker based commands for ImageSearch.
-type ImageSearchSpell struct {
-	client *client.Client
-
-	searchOps types.ImageSearchOptions
 }
 
 // Exec executes the image creation for the underline docker server pointed to.

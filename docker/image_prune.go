@@ -22,9 +22,17 @@ type ImagePruneOptions func(*ImagePruneSpell)
 // ImagePruneResponseCallback defines a function type for ImagePruneSpell response.
 type ImagePruneResponseCallback func(types.ImagesPruneReport) error
 
-// AlwaysImagePruneSpellWith returns a object that always executes the provided ImagePruneSpell with the provided callback.
-func AlwaysImagePruneSpellWith(bm *ImagePruneSpell, cb ImagePruneResponseCallback) box.Spell {
-	return &onceImagePruneSpell{spell: bm, callback: cb}
+// ImagePruneSpell defines a structure which implements the Spell interface
+// for executing of docker based commands for ImagePrune.
+type ImagePruneSpell struct {
+	client *client.Client
+
+	args filters.Args
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *ImagePruneSpell) Spell(callback ImagePruneResponseCallback) box.Spell {
+	return &onceImagePruneSpell{spell: cm, callback: cb}
 }
 
 type onceImagePruneSpell struct {
@@ -35,14 +43,6 @@ type onceImagePruneSpell struct {
 // Exec excutes the spell and adds the neccessary callback.
 func (cm *onceImagePruneSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
-}
-
-// ImagePruneSpell defines a structure which implements the Spell interface
-// for executing of docker based commands for ImagePrune.
-type ImagePruneSpell struct {
-	client *client.Client
-
-	args filters.Args
 }
 
 // Exec executes the image creation for the underline docker server pointed to.

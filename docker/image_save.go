@@ -22,9 +22,17 @@ type ImageSaveOptions func(*ImageSaveSpell)
 // ImageSaveResponseCallback defines a function type for ImageSaveSpell response.
 type ImageSaveResponseCallback func(io.ReadCloser) error
 
-// AlwaysImageSaveSpellWith returns a object that always executes the provided ImageSaveSpell with the provided callback.
-func AlwaysImageSaveSpellWith(bm *ImageSaveSpell, cb ImageSaveResponseCallback) box.Spell {
-	return &onceImageSaveSpell{spell: bm, callback: cb}
+// ImageSaveSpell defines a structure which implements the Spell interface
+// for executing of docker based commands for ImageSave.
+type ImageSaveSpell struct {
+	client *client.Client
+
+	ops []string
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *ImageSaveSpell) Spell(callback ImageSaveResponseCallback) box.Spell {
+	return &onceImageSaveSpell{spell: cm, callback: cb}
 }
 
 type onceImageSaveSpell struct {
@@ -35,14 +43,6 @@ type onceImageSaveSpell struct {
 // Exec excutes the spell and adds the neccessary callback.
 func (cm *onceImageSaveSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
-}
-
-// ImageSaveSpell defines a structure which implements the Spell interface
-// for executing of docker based commands for ImageSave.
-type ImageSaveSpell struct {
-	client *client.Client
-
-	ops []string
 }
 
 // Exec executes the image creation for the underline docker server pointed to.

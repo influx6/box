@@ -23,9 +23,17 @@ type CreateImageOptions func(*CreateImageSpell)
 // CreateImageResponseCallback defines a function type for CreateImageSpell response.
 type CreateImageResponseCallback func(types.ImageLoadResponse) error
 
-// AlwaysCreateImageSpellWith returns a object that always executes the provided CreateImageSpell with the provided callback.
-func AlwaysCreateImageSpellWith(bm *CreateImageSpell, cb CreateImageResponseCallback) box.Spell {
-	return &onceCreateImageSpell{spell: bm, callback: cb}
+// CreateImageSpell defines a structure which implements the Spell interface
+// for executing of docker based commands for CreateImage.
+type CreateImageSpell struct {
+	client *client.Client
+
+	reader io.ReadCloser
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *CreateImageSpell) Spell(callback CreateImageResponseCallback) box.Spell {
+	return &onceCreateImageSpell{spell: cm, callback: cb}
 }
 
 type onceCreateImageSpell struct {
@@ -36,14 +44,6 @@ type onceCreateImageSpell struct {
 // Exec excutes the spell and adds the neccessary callback.
 func (cm *onceCreateImageSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
-}
-
-// CreateImageSpell defines a structure which implements the Spell interface
-// for executing of docker based commands for CreateImage.
-type CreateImageSpell struct {
-	client *client.Client
-
-	reader io.ReadCloser
 }
 
 // Exec executes the image creation for the underline docker server pointed to.

@@ -21,9 +21,17 @@ type ImageRemoveOptions func(*ImageRemoveSpell)
 // ImageRemoveResponseCallback defines a function type for ImageRemoveSpell response.
 type ImageRemoveResponseCallback func([]types.ImageDeleteResponseItem) error
 
-// AlwaysImageRemoveSpellWith returns a object that always executes the provided ImageRemoveSpell with the provided callback.
-func AlwaysImageRemoveSpellWith(bm *ImageRemoveSpell, cb ImageRemoveResponseCallback) box.Spell {
-	return &onceImageRemoveSpell{spell: bm, callback: cb}
+// ImageRemoveSpell defines a structure which implements the Spell interface
+// for executing of docker based commands for ImageRemove.
+type ImageRemoveSpell struct {
+	client *client.Client
+
+	removeOps types.ImageRemoveOptions
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *ImageRemoveSpell) Spell(callback ImageRemoveResponseCallback) box.Spell {
+	return &onceImageRemoveSpell{spell: cm, callback: cb}
 }
 
 type onceImageRemoveSpell struct {
@@ -34,14 +42,6 @@ type onceImageRemoveSpell struct {
 // Exec excutes the spell and adds the neccessary callback.
 func (cm *onceImageRemoveSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
-}
-
-// ImageRemoveSpell defines a structure which implements the Spell interface
-// for executing of docker based commands for ImageRemove.
-type ImageRemoveSpell struct {
-	client *client.Client
-
-	removeOps types.ImageRemoveOptions
 }
 
 // Exec executes the image creation for the underline docker server pointed to.

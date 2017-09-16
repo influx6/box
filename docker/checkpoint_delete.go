@@ -23,9 +23,19 @@ type CheckpointDeleteOptions func(*CheckpointDeleteSpell)
 // CheckpointDeleteResponseCallback defines a function type for CheckpointDeleteSpell response.
 type CheckpointDeleteResponseCallback func() error
 
-// AlwaysCheckpointDeleteSpellWith returns a object that always executes the provided CheckpointDeleteSpell with the provided callback.
-func AlwaysCheckpointDeleteSpellWith(bm *CheckpointDeleteSpell, cb CheckpointDeleteResponseCallback) box.Spell {
-	return &onceCheckpointDeleteSpell{spell: bm, callback: cb}
+// CheckpointDeleteSpell defines a structure which implements the Spell interface
+// for executing of docker based commands for CheckpointDelete.
+type CheckpointDeleteSpell struct {
+	client *client.Client
+
+	container string
+
+	chop types.CheckpointDeleteOptions
+}
+
+// Spell returns a object implementing the box.Shell interface.
+func (cm *CheckpointDeleteSpell) Spell(callback CheckpointDeleteResponseCallback) box.Spell {
+	return &onceCheckpointDeleteSpell{spell: cm, callback: cb}
 }
 
 type onceCheckpointDeleteSpell struct {
@@ -36,16 +46,6 @@ type onceCheckpointDeleteSpell struct {
 // Exec excutes the spell and adds the neccessary callback.
 func (cm *onceCheckpointDeleteSpell) Exec(ctx box.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
-}
-
-// CheckpointDeleteSpell defines a structure which implements the Spell interface
-// for executing of docker based commands for CheckpointDelete.
-type CheckpointDeleteSpell struct {
-	client *client.Client
-
-	container string
-
-	chop types.CheckpointDeleteOptions
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
