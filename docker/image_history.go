@@ -1,8 +1,11 @@
 package docker
 
 import (
+	"context"
+
 	"github.com/docker/docker/api/types/image"
 	"github.com/influx6/box"
+	"github.com/influx6/faux/context"
 	"github.com/moby/moby/client"
 )
 
@@ -36,12 +39,12 @@ type onceImageHistorySpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceImageHistorySpell) Exec(ctx box.CancelContext) error {
+func (cm *onceImageHistorySpell) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ImageHistorySpell) Exec(ctx box.CancelContext, callback ImageHistoryResponseCallback) error {
+func (cm *ImageHistorySpell) Exec(ctx context.CancelContext, callback ImageHistoryResponseCallback) error {
 	// Execute client ImageHistory method.
 	ret0, err := cm.client.ImageHistory()
 	if err != nil {

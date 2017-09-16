@@ -1,10 +1,12 @@
 package docker
 
 import (
+	"context"
 	"io"
 
 	"github.com/docker/docker/api/types"
 	"github.com/influx6/box"
+	"github.com/influx6/faux/context"
 	"github.com/moby/moby/client"
 )
 
@@ -42,12 +44,12 @@ type onceImageLoadSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceImageLoadSpell) Exec(ctx box.CancelContext) error {
+func (cm *onceImageLoadSpell) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ImageLoadSpell) Exec(ctx box.CancelContext, callback ImageLoadResponseCallback) error {
+func (cm *ImageLoadSpell) Exec(ctx context.CancelContext, callback ImageLoadResponseCallback) error {
 	// Execute client ImageLoad method.
 	ret0, err := cm.client.ImageLoad(cm.reader)
 	if err != nil {

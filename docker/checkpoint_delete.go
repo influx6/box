@@ -1,8 +1,11 @@
 package docker
 
 import (
+	"context"
+
 	"github.com/docker/docker/api/types"
 	"github.com/influx6/box"
+	"github.com/influx6/faux/context"
 	"github.com/moby/moby/client"
 )
 
@@ -44,12 +47,12 @@ type onceCheckpointDeleteSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceCheckpointDeleteSpell) Exec(ctx box.CancelContext) error {
+func (cm *onceCheckpointDeleteSpell) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *CheckpointDeleteSpell) Exec(ctx box.CancelContext, callback CheckpointDeleteResponseCallback) error {
+func (cm *CheckpointDeleteSpell) Exec(ctx context.CancelContext, callback CheckpointDeleteResponseCallback) error {
 	// Execute client CheckpointDelete method.
 	err := cm.client.CheckpointDelete(cm.container, cm.chop)
 	if err != nil {

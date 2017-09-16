@@ -1,7 +1,10 @@
 package docker
 
 import (
+	"context"
+
 	"github.com/influx6/box"
+	"github.com/influx6/faux/context"
 	"github.com/moby/moby/client"
 	"github.com/moby/moby/container"
 )
@@ -44,12 +47,12 @@ type onceContainerWaitSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceContainerWaitSpell) Exec(ctx box.CancelContext) error {
+func (cm *onceContainerWaitSpell) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ContainerWaitSpell) Exec(ctx box.CancelContext, callback ContainerWaitResponseCallback) error {
+func (cm *ContainerWaitSpell) Exec(ctx context.CancelContext, callback ContainerWaitResponseCallback) error {
 	// Execute client ContainerWait method.
 	err := cm.client.ContainerWait(cm.containerID, cm.container)
 	if err != nil {

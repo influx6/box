@@ -1,8 +1,11 @@
 package docker
 
 import (
+	"context"
+
 	"github.com/docker/docker/api/types"
 	"github.com/influx6/box"
+	"github.com/influx6/faux/context"
 	"github.com/moby/moby/client"
 )
 
@@ -40,12 +43,12 @@ type onceEventsSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceEventsSpell) Exec(ctx box.CancelContext) error {
+func (cm *onceEventsSpell) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *EventsSpell) Exec(ctx box.CancelContext, callback EventsResponseCallback) error {
+func (cm *EventsSpell) Exec(ctx context.CancelContext, callback EventsResponseCallback) error {
 	// Execute client Events method.
 	err := cm.client.Events(cm.eventOp)
 	if err != nil {

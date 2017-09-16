@@ -1,10 +1,12 @@
 package docker
 
 import (
+	"context"
 	"io"
 
 	"github.com/docker/docker/api/types"
 	"github.com/influx6/box"
+	"github.com/influx6/faux/context"
 	"github.com/moby/moby/client"
 )
 
@@ -54,12 +56,12 @@ type onceCopyToContainerSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceCopyToContainerSpell) Exec(ctx box.CancelContext) error {
+func (cm *onceCopyToContainerSpell) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *CopyToContainerSpell) Exec(ctx box.CancelContext, callback CopyToContainerResponseCallback) error {
+func (cm *CopyToContainerSpell) Exec(ctx context.CancelContext, callback CopyToContainerResponseCallback) error {
 	// Execute client CopyToContainer method.
 	err := cm.client.CopyToContainer(cm.container, cm.topath, cm.reader, cm.cops)
 	if err != nil {

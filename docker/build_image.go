@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/influx6/box"
+	"github.com/influx6/faux/context"
 	"github.com/influx6/moz/gen/filesystem"
 	"github.com/moby/moby/client"
 )
@@ -82,7 +83,7 @@ type oncebuildImageSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *oncebuildImageSpell) Exec(ctx box.CancelContext) error {
+func (cm *oncebuildImageSpell) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
@@ -106,7 +107,7 @@ type BuildImageSpell struct {
 // If the spell has the types.ImageBuildOptions without a filesystem, then the
 // types.ImageBuildOptions will be used as is, else the filesystem will be included
 // has the underline BuildContext.
-func (cm *BuildImageSpell) Exec(ctx box.CancelContext, callback BuildImageResponseCallback) error {
+func (cm *BuildImageSpell) Exec(ctx context.CancelContext, callback BuildImageResponseCallback) error {
 	if cm.client == nil {
 		return ErrNoDockerClientProvided
 	}

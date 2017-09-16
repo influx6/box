@@ -1,7 +1,10 @@
 package docker
 
 import (
+	"context"
+
 	"github.com/influx6/box"
+	"github.com/influx6/faux/context"
 	"github.com/moby/moby/client"
 )
 
@@ -39,12 +42,12 @@ type onceImageTagSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceImageTagSpell) Exec(ctx box.CancelContext) error {
+func (cm *onceImageTagSpell) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ImageTagSpell) Exec(ctx box.CancelContext, callback ImageTagResponseCallback) error {
+func (cm *ImageTagSpell) Exec(ctx context.CancelContext, callback ImageTagResponseCallback) error {
 	// Execute client ImageTag method.
 	err := cm.client.ImageTag(cm.tag)
 	if err != nil {

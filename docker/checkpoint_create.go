@@ -1,8 +1,11 @@
 package docker
 
 import (
+	"context"
+
 	"github.com/docker/docker/api/types"
 	"github.com/influx6/box"
+	"github.com/influx6/faux/context"
 	"github.com/moby/moby/client"
 )
 
@@ -44,12 +47,12 @@ type onceCheckpointCreateSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceCheckpointCreateSpell) Exec(ctx box.CancelContext) error {
+func (cm *onceCheckpointCreateSpell) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *CheckpointCreateSpell) Exec(ctx box.CancelContext, callback CheckpointCreateResponseCallback) error {
+func (cm *CheckpointCreateSpell) Exec(ctx context.CancelContext, callback CheckpointCreateResponseCallback) error {
 	// Execute client CheckpointCreate method.
 	err := cm.client.CheckpointCreate(cm.container, cm.chop)
 	if err != nil {

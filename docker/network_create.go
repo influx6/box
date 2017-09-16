@@ -1,8 +1,11 @@
 package docker
 
 import (
+	"context"
+
 	"github.com/docker/docker/api/types"
 	"github.com/influx6/box"
+	"github.com/influx6/faux/context"
 	"github.com/moby/moby/client"
 )
 
@@ -40,12 +43,12 @@ type onceNetworkCreateSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceNetworkCreateSpell) Exec(ctx box.CancelContext) error {
+func (cm *onceNetworkCreateSpell) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *NetworkCreateSpell) Exec(ctx box.CancelContext, callback NetworkCreateResponseCallback) error {
+func (cm *NetworkCreateSpell) Exec(ctx context.CancelContext, callback NetworkCreateResponseCallback) error {
 	// Execute client NetworkCreate method.
 	ret0, err := cm.client.NetworkCreate(cm.network)
 	if err != nil {

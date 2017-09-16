@@ -1,7 +1,10 @@
 package docker
 
 import (
+	"context"
+
 	"github.com/influx6/box"
+	"github.com/influx6/faux/context"
 	"github.com/moby/moby/client"
 )
 
@@ -39,12 +42,12 @@ type onceNetworkDisconnectSpell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceNetworkDisconnectSpell) Exec(ctx box.CancelContext) error {
+func (cm *onceNetworkDisconnectSpell) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *NetworkDisconnectSpell) Exec(ctx box.CancelContext, callback NetworkDisconnectResponseCallback) error {
+func (cm *NetworkDisconnectSpell) Exec(ctx context.CancelContext, callback NetworkDisconnectResponseCallback) error {
 	// Execute client NetworkDisconnect method.
 	err := cm.client.NetworkDisconnect(cm.networkID)
 	if err != nil {

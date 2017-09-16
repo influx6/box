@@ -6,6 +6,7 @@ import (
 	{{end}}
 
 	"github.com/influx6/box"
+	"github.com/influx6/faux/context"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/image"
 	"github.com/influx6/moz/gen/filesystem"
@@ -58,12 +59,12 @@ type once{{sel "Name"}}Spell struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *once{{sel "Name"}}Spell) Exec(ctx box.CancelContext) error {
+func (cm *once{{sel "Name"}}Spell) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *{{sel "Name"}}Spell) Exec(ctx box.CancelContext, callback {{sel "Name"}}ResponseCallback) error {
+func (cm *{{sel "Name"}}Spell) Exec(ctx context.CancelContext, callback {{sel "Name"}}ResponseCallback) error {
 	// Execute client {{sel "Name"}} method.
 	{{ if lenNotEqual (attrs "return") 0 }} {{$rets}}, err := cm.client.{{sel "Name"}}({{$args}}) {{ else }} err := cm.client.{{sel "Name"}}({{$args}}) {{ end }}
 	if err != nil {
