@@ -77,6 +77,15 @@ func Envs(envs map[string]string) CommanderOption {
 	}
 }
 
+// Apply takes the giving series of CommandOption returning a function that always applies them to passed in commanders.
+func Apply(ops ...CommanderOption) CommanderOption {
+	return func(cm *Commander) {
+		for _, op := range ops {
+			op(cm)
+		}
+	}
+}
+
 // Commander runs provided command within a /bin/sh -c "{COMMAND}", returning
 // response associatedly. It also attaches if provided stdin, stdout and stderr readers/writers.
 // Commander allows you to set the binary to use and flag, where each defaults to /bin/sh for binary
