@@ -1,17 +1,38 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"os"
 	"runtime"
 
 	"github.com/fatih/color"
+	"github.com/influx6/box/recipes/exec/osinfo"
 	"github.com/influx6/faux/metrics"
-	"github.com/influx6/faux/metrics/sentries/stdout"
+	"github.com/influx6/faux/metrics/sentries/custom"
 	"github.com/minio/cli"
 )
 
+const (
+	opLog  = "ps"
+	errLog = "errs"
+)
+
+const (
+	logKey = "LOGID"
+)
+
 var (
-	events = metrics.New(stdout.Stdout{})
+	red    = color.New(color.FgRed)
+	events = metrics.New(
+		metrics.Switch(logKey, map[string]metrics.Metrics{
+			"ops": custom.StackDisplayWith(os.Stdout, "[Op]", "-", nil),
+			"errs": metrics.Mod(func(m metrics.Entry) metrics.Entry {
+				m.Message = red.Sprintf(m.Message)
+				return m
+			}, custom.StackDisplayWith(os.Stdout, red.Sprint("X"), red.Sprint("-"), nil)),
+		}),
+	)
 )
 
 // Version defines the version number for the cli.
@@ -72,10 +93,16 @@ func main() {
 }
 
 func initFn(c *cli.Context) {
+	osInfo, err := osinfo.OSInfo(context.Background())
+	if err != nil {
+		events.Emit(metrics.With(logKey, errLog).WithMessage("Failed to retreive os information for identification step"))
+		return
+	}
 
+	fmt.Printf("%#v\n", osInfo)
 }
 
 // versionFn defines the action called when seeking the Version detail.
 func versionFn(c *cli.Context) {
-	fmt.Println(color.BlueString(fmt.Sprintf("box version %s %s/%s", Version, runtime.GOOS, runtime.GOARCH)))
+	fmt.Println(color.BlueString(fmt.Sprintf("box v%s %s/%s", Version, runtime.GOOS, runtime.GOARCH)))
 }
