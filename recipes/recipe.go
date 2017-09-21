@@ -1,15 +1,35 @@
 package recipes
 
 import (
-	"github.com/influx6/box"
+	"github.com/influx6/box/recipes/exec"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/ops"
 )
+
+// GenericRunner will run necessary commands to update apt-get for a debian/ubuntu system.
+type GenericRunner struct {
+	Command   string
+	DoWithCmd exec.CommanderOption
+}
+
+// Exec executes giving recipe for building giving docker image for the provided binary.
+func (gn GenericRunner) Exec(ctx context.CancelContext) error {
+	cmd := exec.New(exec.Command(gn.Command), exec.Async())
+
+	if gn.DoWithCmd != nil {
+		gn.DoWithCmd(cmd)
+	}
+
+	return cmd.Exec(ctx)
+}
+
+//===============================================================================================================
 
 // MultiRunner will run necessary commands to update apt-get for a debian/ubuntu system.
 type MultiRunner struct {
-	Pre  []box.Spell
-	Then box.Spell
-	Post []box.Spell
+	Pre  []ops.Op
+	Then ops.Op
+	Post []ops.Op
 }
 
 // Exec executes giving spells in a before-now-after sequence.

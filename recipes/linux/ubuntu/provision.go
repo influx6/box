@@ -43,25 +43,6 @@ func (pkgSrc PackageSourceUpdate) Exec(ctx context.CancelContext) error {
 
 //===============================================================================================================
 
-// GenericRunner will run necessary commands to update apt-get for a debian/ubuntu system.
-type GenericRunner struct {
-	Command   string
-	DoWithCmd exec.CommanderOption
-}
-
-// Exec executes giving recipe for building giving docker image for the provided binary.
-func (gn GenericRunner) Exec(ctx context.CancelContext) error {
-	cmd := exec.New(exec.Command(gn.Command), exec.Async())
-
-	if gn.DoWithCmd != nil {
-		gn.DoWithCmd(cmd)
-	}
-
-	return cmd.Exec(ctx)
-}
-
-//===============================================================================================================
-
 // PacakgeAction defines a int type to represent a package action for a package installer.
 type PackageAction int
 
