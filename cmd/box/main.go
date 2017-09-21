@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/fatih/color"
-	"github.com/influx6/box/recipes/exec/osinfo"
+	"github.com/influx6/box"
 	"github.com/influx6/faux/metrics"
 	"github.com/influx6/faux/metrics/sentries/custom"
 	"github.com/minio/cli"
@@ -93,13 +94,16 @@ func main() {
 }
 
 func initFn(c *cli.Context) {
-	osInfo, err := osinfo.OSInfo(context.Background())
+	exec, err := box.CreateWithJSON(strings.ToLower(runtime.GOOS), map[string]interface{}{})
 	if err != nil {
-		events.Emit(metrics.With(logKey, errLog).WithMessage("Failed to retreive os information for identification step"))
+		events.Emit(metrics.With(logKey, errLog).With("error", err).WithMessage("Failed to find provisioner for %q", runtime.GOOS))
 		return
 	}
 
-	fmt.Printf("%#v\n", osInfo)
+	if err := exec.Exec(context.Background()); err != nil {
+		events.Emit(metrics.With(logKey, errLog).With("error", err).WithMessage("Failed to run provisioner for %q", runtime.GOOS))
+		return
+	}
 }
 
 // versionFn defines the action called when seeking the Version detail.

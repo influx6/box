@@ -5,51 +5,51 @@ import (
 	"io"
 
 	"github.com/docker/docker/api/types"
-	"github.com/influx6/box"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/ops"
 	"github.com/moby/moby/client"
 )
 
-// CreateImage returns a new CreateImageSpell instance to be executed on the client.
-func (d *DockerCaster) CreateImage(reader io.ReadCloser) (*CreateImageSpell, error) {
-	var spell CreateImageSpell
+// CreateImage returns a new CreateImageOp instance to be executed on the client.
+func (d *DockerCaster) CreateImage(reader io.ReadCloser) (*CreateImageOp, error) {
+	var spell CreateImageOp
 
 	spell.reader = reader
 
 	return &spell, nil
 }
 
-// CreateImageSpell defines a function type to modify internal fields of the CreateImageSpell.
-type CreateImageOptions func(*CreateImageSpell)
+// CreateImageOptions defines a function type to modify internal fields of the CreateImageOp.
+type CreateImageOptions func(*CreateImageOp)
 
-// CreateImageResponseCallback defines a function type for CreateImageSpell response.
+// CreateImageResponseCallback defines a function type for CreateImageOp response.
 type CreateImageResponseCallback func(types.ImageLoadResponse) error
 
-// CreateImageSpell defines a structure which implements the Spell interface
+// CreateImageOp defines a structure which implements the Op interface
 // for executing of docker based commands for CreateImage.
-type CreateImageSpell struct {
+type CreateImageOp struct {
 	client *client.Client
 
 	reader io.ReadCloser
 }
 
-// Spell returns a object implementing the box.Shell interface.
-func (cm *CreateImageSpell) Spell(callback CreateImageResponseCallback) box.Spell {
-	return &onceCreateImageSpell{spell: cm, callback: cb}
+// Op returns a object implementing the ops.Op interface.
+func (cm *CreateImageOp) Op(callback CreateImageResponseCallback) ops.Op {
+	return &onceCreateImageOp{spell: cm, callback: cb}
 }
 
-type onceCreateImageSpell struct {
+type onceCreateImageOp struct {
 	callback CreateImageResponseCallback
-	spell    *CreateImageSpell
+	spell    *CreateImageOp
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceCreateImageSpell) Exec(ctx context.CancelContext) error {
+func (cm *onceCreateImageOp) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *CreateImageSpell) Exec(ctx context.CancelContext, callback CreateImageResponseCallback) error {
+func (cm *CreateImageOp) Exec(ctx context.CancelContext, callback CreateImageResponseCallback) error {
 	// Execute client CreateImage method.
 	ret0, err := cm.client.CreateImage(cm.reader)
 	if err != nil {

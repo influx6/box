@@ -4,51 +4,51 @@ import (
 	"context"
 
 	"github.com/docker/docker/api/types"
-	"github.com/influx6/box"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/ops"
 	"github.com/moby/moby/client"
 )
 
-// ImageList returns a new ImageListSpell instance to be executed on the client.
-func (d *DockerCaster) ImageList(listOps types.ImageListOptions) (*ImageListSpell, error) {
-	var spell ImageListSpell
+// ImageList returns a new ImageListOp instance to be executed on the client.
+func (d *DockerCaster) ImageList(listOps types.ImageListOptions) (*ImageListOp, error) {
+	var spell ImageListOp
 
 	spell.listOps = listOps
 
 	return &spell, nil
 }
 
-// ImageListSpell defines a function type to modify internal fields of the ImageListSpell.
-type ImageListOptions func(*ImageListSpell)
+// ImageListOptions defines a function type to modify internal fields of the ImageListOp.
+type ImageListOptions func(*ImageListOp)
 
-// ImageListResponseCallback defines a function type for ImageListSpell response.
+// ImageListResponseCallback defines a function type for ImageListOp response.
 type ImageListResponseCallback func([]types.ImageSummary) error
 
-// ImageListSpell defines a structure which implements the Spell interface
+// ImageListOp defines a structure which implements the Op interface
 // for executing of docker based commands for ImageList.
-type ImageListSpell struct {
+type ImageListOp struct {
 	client *client.Client
 
 	listOps types.ImageListOptions
 }
 
-// Spell returns a object implementing the box.Shell interface.
-func (cm *ImageListSpell) Spell(callback ImageListResponseCallback) box.Spell {
-	return &onceImageListSpell{spell: cm, callback: cb}
+// Op returns a object implementing the ops.Op interface.
+func (cm *ImageListOp) Op(callback ImageListResponseCallback) ops.Op {
+	return &onceImageListOp{spell: cm, callback: cb}
 }
 
-type onceImageListSpell struct {
+type onceImageListOp struct {
 	callback ImageListResponseCallback
-	spell    *ImageListSpell
+	spell    *ImageListOp
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceImageListSpell) Exec(ctx context.CancelContext) error {
+func (cm *onceImageListOp) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ImageListSpell) Exec(ctx context.CancelContext, callback ImageListResponseCallback) error {
+func (cm *ImageListOp) Exec(ctx context.CancelContext, callback ImageListResponseCallback) error {
 	// Execute client ImageList method.
 	ret0, err := cm.client.ImageList(cm.listOps)
 	if err != nil {

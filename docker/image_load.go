@@ -5,51 +5,51 @@ import (
 	"io"
 
 	"github.com/docker/docker/api/types"
-	"github.com/influx6/box"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/ops"
 	"github.com/moby/moby/client"
 )
 
-// ImageLoad returns a new ImageLoadSpell instance to be executed on the client.
-func (d *DockerCaster) ImageLoad(reader io.Reader) (*ImageLoadSpell, error) {
-	var spell ImageLoadSpell
+// ImageLoad returns a new ImageLoadOp instance to be executed on the client.
+func (d *DockerCaster) ImageLoad(reader io.Reader) (*ImageLoadOp, error) {
+	var spell ImageLoadOp
 
 	spell.reader = reader
 
 	return &spell, nil
 }
 
-// ImageLoadSpell defines a function type to modify internal fields of the ImageLoadSpell.
-type ImageLoadOptions func(*ImageLoadSpell)
+// ImageLoadOptions defines a function type to modify internal fields of the ImageLoadOp.
+type ImageLoadOptions func(*ImageLoadOp)
 
-// ImageLoadResponseCallback defines a function type for ImageLoadSpell response.
+// ImageLoadResponseCallback defines a function type for ImageLoadOp response.
 type ImageLoadResponseCallback func(types.ImageLoadResponse) error
 
-// ImageLoadSpell defines a structure which implements the Spell interface
+// ImageLoadOp defines a structure which implements the Op interface
 // for executing of docker based commands for ImageLoad.
-type ImageLoadSpell struct {
+type ImageLoadOp struct {
 	client *client.Client
 
 	reader io.Reader
 }
 
-// Spell returns a object implementing the box.Shell interface.
-func (cm *ImageLoadSpell) Spell(callback ImageLoadResponseCallback) box.Spell {
-	return &onceImageLoadSpell{spell: cm, callback: cb}
+// Op returns a object implementing the ops.Op interface.
+func (cm *ImageLoadOp) Op(callback ImageLoadResponseCallback) ops.Op {
+	return &onceImageLoadOp{spell: cm, callback: cb}
 }
 
-type onceImageLoadSpell struct {
+type onceImageLoadOp struct {
 	callback ImageLoadResponseCallback
-	spell    *ImageLoadSpell
+	spell    *ImageLoadOp
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceImageLoadSpell) Exec(ctx context.CancelContext) error {
+func (cm *onceImageLoadOp) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ImageLoadSpell) Exec(ctx context.CancelContext, callback ImageLoadResponseCallback) error {
+func (cm *ImageLoadOp) Exec(ctx context.CancelContext, callback ImageLoadResponseCallback) error {
 	// Execute client ImageLoad method.
 	ret0, err := cm.client.ImageLoad(cm.reader)
 	if err != nil {

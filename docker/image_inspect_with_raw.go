@@ -4,47 +4,47 @@ import (
 	"context"
 
 	"github.com/docker/docker/api/types"
-	"github.com/influx6/box"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/ops"
 	"github.com/moby/moby/client"
 )
 
-// ImageInspectWithRaw returns a new ImageInspectWithRawSpell instance to be executed on the client.
-func (d *DockerCaster) ImageInspectWithRaw() (*ImageInspectWithRawSpell, error) {
-	var spell ImageInspectWithRawSpell
+// ImageInspectWithRaw returns a new ImageInspectWithRawOp instance to be executed on the client.
+func (d *DockerCaster) ImageInspectWithRaw() (*ImageInspectWithRawOp, error) {
+	var spell ImageInspectWithRawOp
 
 	return &spell, nil
 }
 
-// ImageInspectWithRawSpell defines a function type to modify internal fields of the ImageInspectWithRawSpell.
-type ImageInspectWithRawOptions func(*ImageInspectWithRawSpell)
+// ImageInspectWithRawOptions defines a function type to modify internal fields of the ImageInspectWithRawOp.
+type ImageInspectWithRawOptions func(*ImageInspectWithRawOp)
 
-// ImageInspectWithRawResponseCallback defines a function type for ImageInspectWithRawSpell response.
+// ImageInspectWithRawResponseCallback defines a function type for ImageInspectWithRawOp response.
 type ImageInspectWithRawResponseCallback func(types.ImageInspect) error
 
-// ImageInspectWithRawSpell defines a structure which implements the Spell interface
+// ImageInspectWithRawOp defines a structure which implements the Op interface
 // for executing of docker based commands for ImageInspectWithRaw.
-type ImageInspectWithRawSpell struct {
+type ImageInspectWithRawOp struct {
 	client *client.Client
 }
 
-// Spell returns a object implementing the box.Shell interface.
-func (cm *ImageInspectWithRawSpell) Spell(callback ImageInspectWithRawResponseCallback) box.Spell {
-	return &onceImageInspectWithRawSpell{spell: cm, callback: cb}
+// Op returns a object implementing the ops.Op interface.
+func (cm *ImageInspectWithRawOp) Op(callback ImageInspectWithRawResponseCallback) ops.Op {
+	return &onceImageInspectWithRawOp{spell: cm, callback: cb}
 }
 
-type onceImageInspectWithRawSpell struct {
+type onceImageInspectWithRawOp struct {
 	callback ImageInspectWithRawResponseCallback
-	spell    *ImageInspectWithRawSpell
+	spell    *ImageInspectWithRawOp
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceImageInspectWithRawSpell) Exec(ctx context.CancelContext) error {
+func (cm *onceImageInspectWithRawOp) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ImageInspectWithRawSpell) Exec(ctx context.CancelContext, callback ImageInspectWithRawResponseCallback) error {
+func (cm *ImageInspectWithRawOp) Exec(ctx context.CancelContext, callback ImageInspectWithRawResponseCallback) error {
 	// Execute client ImageInspectWithRaw method.
 	ret0, err := cm.client.ImageInspectWithRaw()
 	if err != nil {

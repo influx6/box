@@ -4,51 +4,51 @@ import (
 	"context"
 
 	"github.com/docker/docker/api/types"
-	"github.com/influx6/box"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/ops"
 	"github.com/moby/moby/client"
 )
 
-// NetworkInspect returns a new NetworkInspectSpell instance to be executed on the client.
-func (d *DockerCaster) NetworkInspect(netOp types.NetworkInspectOptions) (*NetworkInspectSpell, error) {
-	var spell NetworkInspectSpell
+// NetworkInspect returns a new NetworkInspectOp instance to be executed on the client.
+func (d *DockerCaster) NetworkInspect(netOp types.NetworkInspectOptions) (*NetworkInspectOp, error) {
+	var spell NetworkInspectOp
 
 	spell.netOp = netOp
 
 	return &spell, nil
 }
 
-// NetworkInspectSpell defines a function type to modify internal fields of the NetworkInspectSpell.
-type NetworkInspectOptions func(*NetworkInspectSpell)
+// NetworkInspectOptions defines a function type to modify internal fields of the NetworkInspectOp.
+type NetworkInspectOptions func(*NetworkInspectOp)
 
-// NetworkInspectResponseCallback defines a function type for NetworkInspectSpell response.
+// NetworkInspectResponseCallback defines a function type for NetworkInspectOp response.
 type NetworkInspectResponseCallback func(types.NetworkResource) error
 
-// NetworkInspectSpell defines a structure which implements the Spell interface
+// NetworkInspectOp defines a structure which implements the Op interface
 // for executing of docker based commands for NetworkInspect.
-type NetworkInspectSpell struct {
+type NetworkInspectOp struct {
 	client *client.Client
 
 	netOp types.NetworkInspectOptions
 }
 
-// Spell returns a object implementing the box.Shell interface.
-func (cm *NetworkInspectSpell) Spell(callback NetworkInspectResponseCallback) box.Spell {
-	return &onceNetworkInspectSpell{spell: cm, callback: cb}
+// Op returns a object implementing the ops.Op interface.
+func (cm *NetworkInspectOp) Op(callback NetworkInspectResponseCallback) ops.Op {
+	return &onceNetworkInspectOp{spell: cm, callback: cb}
 }
 
-type onceNetworkInspectSpell struct {
+type onceNetworkInspectOp struct {
 	callback NetworkInspectResponseCallback
-	spell    *NetworkInspectSpell
+	spell    *NetworkInspectOp
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceNetworkInspectSpell) Exec(ctx context.CancelContext) error {
+func (cm *onceNetworkInspectOp) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *NetworkInspectSpell) Exec(ctx context.CancelContext, callback NetworkInspectResponseCallback) error {
+func (cm *NetworkInspectOp) Exec(ctx context.CancelContext, callback NetworkInspectResponseCallback) error {
 	// Execute client NetworkInspect method.
 	ret0, err := cm.client.NetworkInspect(cm.netOp)
 	if err != nil {

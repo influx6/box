@@ -5,7 +5,7 @@ import (
 		{{ if notequal . ""}}{{quote .}}{{end}}
 	{{end}}
 
-	"github.com/influx6/box"
+	"github.com/influx6/faux/ops"
 	"github.com/influx6/faux/context"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/image"
@@ -13,9 +13,9 @@ import (
 	"github.com/moby/moby/client"
 )
 
-// {{sel "Name"}} returns a new {{sel "Name"}}Spell instance to be executed on the client.
-func (d *DockerCaster) {{sel "Name"}}({{if lenNotEqual (attrs "arguments") 0 }} {{ joinInterface (attrs "arguments") ", " }} {{end}}) (*{{sel "Name"}}Spell, error) {
-	var spell {{sel "Name"}}Spell
+// {{sel "Name"}} returns a new {{sel "Name"}}Op instance to be executed on the client.
+func (d *DockerCaster) {{sel "Name"}}({{if lenNotEqual (attrs "arguments") 0 }} {{ joinInterface (attrs "arguments") ", " }} {{end}}) (*{{sel "Name"}}Op, error) {
+	var spell {{sel "Name"}}Op
 	{{ range (attrs "arguments") }}
 	{{ $parts := (split . " ") }}
 	{{if lenNotEqual $parts 0 }}
@@ -33,38 +33,38 @@ func (d *DockerCaster) {{sel "Name"}}({{if lenNotEqual (attrs "arguments") 0 }} 
 {{ $retString := doTimesPrefix (lenOf (attrs "return")) "ret"}}
 {{ $rets := join $retString "," }}
 
-// {{sel "Name"}}Spell defines a function type to modify internal fields of the {{sel "Name"}}Spell.
-type {{sel "Name"}}Options func(*{{sel "Name"}}Spell)
+// {{sel "Name"}}Options defines a function type to modify internal fields of the {{sel "Name"}}Op.
+type {{sel "Name"}}Options func(*{{sel "Name"}}Op)
 
-// {{sel "Name"}}ResponseCallback defines a function type for {{sel "Name"}}Spell response.
+// {{sel "Name"}}ResponseCallback defines a function type for {{sel "Name"}}Op response.
 type {{sel "Name"}}ResponseCallback func({{if lenNotEqual (attrs "return") 0 }} {{ joinInterface (attrs "return") ", " }} {{end}}) error
 
-// {{sel "Name"}}Spell defines a structure which implements the Spell interface
+// {{sel "Name"}}Op defines a structure which implements the Op interface
 // for executing of docker based commands for {{sel "Name"}}.
-type {{sel "Name"}}Spell struct {
+type {{sel "Name"}}Op struct {
 	client       *client.Client
 	{{ range (attrs "arguments") }}
 	{{.}}
 	{{end}}
 }
 
-// Spell returns a object implementing the box.Shell interface.
-func (cm *{{sel "Name"}}Spell) Spell(callback {{sel "Name"}}ResponseCallback) box.Spell {
-	return &once{{sel "Name"}}Spell{spell: cm, callback: cb}
+// Op returns a object implementing the ops.Op interface.
+func (cm *{{sel "Name"}}Op) Op(callback {{sel "Name"}}ResponseCallback) ops.Op {
+	return &once{{sel "Name"}}Op{spell: cm, callback: cb}
 }
 
-type once{{sel "Name"}}Spell struct {
+type once{{sel "Name"}}Op struct {
 	callback {{sel "Name"}}ResponseCallback
-	spell *{{sel "Name"}}Spell
+	spell *{{sel "Name"}}Op
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *once{{sel "Name"}}Spell) Exec(ctx context.CancelContext) error {
+func (cm *once{{sel "Name"}}Op) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *{{sel "Name"}}Spell) Exec(ctx context.CancelContext, callback {{sel "Name"}}ResponseCallback) error {
+func (cm *{{sel "Name"}}Op) Exec(ctx context.CancelContext, callback {{sel "Name"}}ResponseCallback) error {
 	// Execute client {{sel "Name"}} method.
 	{{ if lenNotEqual (attrs "return") 0 }} {{$rets}}, err := cm.client.{{sel "Name"}}({{$args}}) {{ else }} err := cm.client.{{sel "Name"}}({{$args}}) {{ end }}
 	if err != nil {

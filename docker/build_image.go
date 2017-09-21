@@ -5,8 +5,8 @@ import (
 	"io"
 
 	"github.com/docker/docker/api/types"
-	"github.com/influx6/box"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/ops"
 	"github.com/influx6/moz/gen/filesystem"
 	"github.com/moby/moby/client"
 )
@@ -73,7 +73,7 @@ func ImageBuildOptions(op types.ImageBuildOptions) BuildImageOptions {
 }
 
 // AlwaysBuildImageSpellWith returns a object that always executes the provided BuildImageSpell with the provided callback.
-func AlwaysBuildImageSpellWith(bm *BuildImageSpell, cb BuildImageResponseCallback) box.Spell {
+func AlwaysBuildImageSpellWith(bm *BuildImageSpell, cb BuildImageResponseCallback) ops.Op {
 	return &oncebuildImageSpell{spell: bm, callback: cb}
 }
 

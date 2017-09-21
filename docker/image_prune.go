@@ -4,52 +4,52 @@ import (
 	"context"
 
 	"github.com/docker/docker/api/types"
-	"github.com/influx6/box"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/ops"
 	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/client"
 )
 
-// ImagePrune returns a new ImagePruneSpell instance to be executed on the client.
-func (d *DockerCaster) ImagePrune(args filters.Args) (*ImagePruneSpell, error) {
-	var spell ImagePruneSpell
+// ImagePrune returns a new ImagePruneOp instance to be executed on the client.
+func (d *DockerCaster) ImagePrune(args filters.Args) (*ImagePruneOp, error) {
+	var spell ImagePruneOp
 
 	spell.args = args
 
 	return &spell, nil
 }
 
-// ImagePruneSpell defines a function type to modify internal fields of the ImagePruneSpell.
-type ImagePruneOptions func(*ImagePruneSpell)
+// ImagePruneOptions defines a function type to modify internal fields of the ImagePruneOp.
+type ImagePruneOptions func(*ImagePruneOp)
 
-// ImagePruneResponseCallback defines a function type for ImagePruneSpell response.
+// ImagePruneResponseCallback defines a function type for ImagePruneOp response.
 type ImagePruneResponseCallback func(types.ImagesPruneReport) error
 
-// ImagePruneSpell defines a structure which implements the Spell interface
+// ImagePruneOp defines a structure which implements the Op interface
 // for executing of docker based commands for ImagePrune.
-type ImagePruneSpell struct {
+type ImagePruneOp struct {
 	client *client.Client
 
 	args filters.Args
 }
 
-// Spell returns a object implementing the box.Shell interface.
-func (cm *ImagePruneSpell) Spell(callback ImagePruneResponseCallback) box.Spell {
-	return &onceImagePruneSpell{spell: cm, callback: cb}
+// Op returns a object implementing the ops.Op interface.
+func (cm *ImagePruneOp) Op(callback ImagePruneResponseCallback) ops.Op {
+	return &onceImagePruneOp{spell: cm, callback: cb}
 }
 
-type onceImagePruneSpell struct {
+type onceImagePruneOp struct {
 	callback ImagePruneResponseCallback
-	spell    *ImagePruneSpell
+	spell    *ImagePruneOp
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceImagePruneSpell) Exec(ctx context.CancelContext) error {
+func (cm *onceImagePruneOp) Exec(ctx context.CancelContext) error {
 	return cm.spell.Exec(ctx, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *ImagePruneSpell) Exec(ctx context.CancelContext, callback ImagePruneResponseCallback) error {
+func (cm *ImagePruneOp) Exec(ctx context.CancelContext, callback ImagePruneResponseCallback) error {
 	// Execute client ImagePrune method.
 	ret0, err := cm.client.ImagePrune(cm.args)
 	if err != nil {
