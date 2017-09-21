@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	opLog  = "ps"
+	opLog  = "ops"
 	errLog = "errs"
 )
 
