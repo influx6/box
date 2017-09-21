@@ -7,6 +7,8 @@ import (
 	"github.com/influx6/box/recipes/exec/osinfo"
 	"github.com/influx6/faux/context"
 	"github.com/influx6/faux/ops"
+
+	_ "github.com/influx6/box/recipes/linux/ubuntu"
 )
 
 var (
