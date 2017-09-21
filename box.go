@@ -38,12 +38,12 @@ func CreateFromBytes(id string, config []byte) (ops.Op, error) {
 
 // CreateWithTOML returns a new spell from the provided configuration map which is first
 // converted into JSON then loaded using the CreateFromBytes function.
-func CreateWithTOML(id string, config map[string]interface{}) (ops.Op, error) {
+func CreateWithTOML(id string, config interface{}) (ops.Op, error) {
 	return functions.CreateWithTOML(id, config)
 }
 
 // CreateWithJSON returns a new spell from the provided configuration map which is first
 // converted into JSON then loaded using the CreateFromBytes function.
-func CreateWithJSON(id string, config map[string]interface{}) (ops.Op, error) {
+func CreateWithJSON(id string, config interface{}) (ops.Op, error) {
 	return functions.CreateWithJSON(id, config)
 }
