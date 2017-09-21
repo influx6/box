@@ -12,6 +12,10 @@ import (
 	"github.com/influx6/faux/metrics"
 	"github.com/influx6/faux/metrics/sentries/custom"
 	"github.com/minio/cli"
+
+	_ "github.com/influx6/box/recipes/darwin"
+	_ "github.com/influx6/box/recipes/linux"
+	_ "github.com/influx6/box/recipes/windows"
 )
 
 const (
