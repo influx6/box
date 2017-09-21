@@ -1,4 +1,4 @@
-package recipes
+package ubuntu
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ var (
 	WgetInstall         = PkgApply(PkgCommand("wget", InstallAction), Debian())
 	AxelInstall         = PkgApply(PkgCommand("axel", InstallAction), Debian())
 	DockerEngineInstall = PkgApply(PkgCommand("docker-engine", InstallAction), Debian())
-	DockerCEInstall     = PkgApply(PkgCommand("docker-engine", InstallAction), UbuntuSystemd())
+	DockerCEInstall     = PkgApply(PkgCommand("docker-ce", InstallAction), UbuntuSystemd())
 )
 
 // custom executors.

@@ -23,11 +23,21 @@ type LinuxProvisioner struct {
 
 // Exec implements the box.Spell system.
 func (dw *LinuxProvisioner) Exec(ctx context.CancelContext) error {
-	osInfo, err := osinfo.OSInfo(ctx)
+	info, err := osinfo.OSInfo(ctx)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("%#v\n", osInfo)
+	provisioner, err := box.CreateWithJSON(fmt.Sprintf("linux/%s", info.ID), map[string]interface{}{
+		"os_info": info,
+	})
+	if err != nil {
+		return fmt.Errorf("Linux Distro %q not supported: %+q", info.ID, err)
+	}
+
+	if err := provisioner.Exec(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }

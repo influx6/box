@@ -13,7 +13,20 @@ import (
 )
 
 // OSInfo retrieves the OSRelease details related to the operating system.
-func OSInfo(ctx context.CancelContext) (*OsRelease, error) {
+func OSInfo(ctx context.CancelContext) (*Info, error) {
+	if data, err := useETC(ctx); err == nil {
+		return NewInfo(data)
+	}
+
+	data, err := useUsrLib(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewInfo(data)
+}
+
+func useETC(ctx context.CancelContext) ([]byte, error) {
 	var outs bytes.Buffer
 	lsCmd := exec.New(exec.Command("cat /etc/os-release"), exec.Sync(), exec.Output(&outs))
 
@@ -21,16 +34,27 @@ func OSInfo(ctx context.CancelContext) (*OsRelease, error) {
 		return nil, err
 	}
 
-	return NewOsRelease(outs.Bytes())
+	return outs.Bytes(), nil
+}
+
+func useUsrLib(ctx context.CancelContext) ([]byte, error) {
+	var outs bytes.Buffer
+	lsCmd := exec.New(exec.Command("cat /usr/lib/os-release"), exec.Sync(), exec.Output(&outs))
+
+	if err := lsCmd.Exec(ctx); err != nil {
+		return nil, err
+	}
+
+	return outs.Bytes(), nil
 }
 
 // The /etc/os-release file contains operating system identification data
 // See http://www.freedesktop.org/software/systemd/man/os-release.html for more details
 
-// OsRelease reflects values in /etc/os-release
+// Info reflects values in /etc/os-release
 // Values in this struct must always be string
 // or the reflection will not work properly.
-type OsRelease struct {
+type Info struct {
 	AnsiColor    string `osr:"ANSI_COLOR"`
 	Name         string `osr:"NAME"`
 	Version      string `osr:"VERSION"`
@@ -45,17 +69,17 @@ type OsRelease struct {
 	BugReportURL string `osr:"BUG_REPORT_URL"`
 }
 
-// NewOsRelease returns a giving OSRelease instance from the provided content.
-func NewOsRelease(contents []byte) (*OsRelease, error) {
-	osr := &OsRelease{}
-	if err := osr.ParseOsRelease(contents); err != nil {
+// NewInfo returns a giving OSRelease instance from the provided content.
+func NewInfo(contents []byte) (*Info, error) {
+	osr := &Info{}
+	if err := osr.ParseInfo(contents); err != nil {
 		return nil, err
 	}
 	return osr, nil
 }
 
-// ParseOsRelease attempts to parse the provided data.
-func (osr *OsRelease) ParseOsRelease(osReleaseContents []byte) error {
+// ParseInfo attempts to parse the provided data.
+func (osr *Info) ParseInfo(osReleaseContents []byte) error {
 	r := bytes.NewReader(osReleaseContents)
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
@@ -77,7 +101,7 @@ func stripQuotes(val string) string {
 	return val
 }
 
-func (osr *OsRelease) setIfPossible(key, val string) error {
+func (osr *Info) setIfPossible(key, val string) error {
 	v := reflect.ValueOf(osr).Elem()
 	for i := 0; i < v.NumField(); i++ {
 		fieldValue := v.Field(i)
