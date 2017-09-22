@@ -9,18 +9,20 @@ import (
 
 // custom package installers
 var (
-	OpenSSHInstall      = PkgApply(PkgCommand("openssh", InstallAction), Debian())
-	GitInstall          = PkgApply(PkgCommand("git", InstallAction), Debian())
-	CurlInstall         = PkgApply(PkgCommand("git", InstallAction), Debian())
-	WgetInstall         = PkgApply(PkgCommand("wget", InstallAction), Debian())
-	AxelInstall         = PkgApply(PkgCommand("axel", InstallAction), Debian())
-	DockerEngineInstall = PkgApply(PkgCommand("docker-engine", InstallAction), Debian())
-	DockerCEInstall     = PkgApply(PkgCommand("docker-ce", InstallAction), UbuntuSystemd())
+	OpenSSHInstall           = PkgPartial(PkgCommand("openssh", InstallAction), Debian())
+	GitInstall               = PkgPartial(PkgCommand("git", InstallAction), Debian())
+	CurlInstall              = PkgPartial(PkgCommand("curl", InstallAction), Debian())
+	WgetInstall              = PkgPartial(PkgCommand("wget", InstallAction), Debian())
+	AxelInstall              = PkgPartial(PkgCommand("axel", InstallAction), Debian())
+	AptTransportHTTPSInstall = PkgPartial(PkgCommand("apt-transport-https", InstallAction), Debian())
+	DockerEngineInstall      = PkgPartial(PkgCommand("docker-engine", InstallAction), Debian())
+	DockerCEInstall          = PkgPartial(PkgCommand("docker-ce", InstallAction), UbuntuSystemd())
 )
 
 // custom executors.
 var (
-	SudoInstaller = exec.New(exec.Command("if ! type sudo; then apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y sudo; fi"))
+	SudoInstaller         = exec.New(exec.Command("if ! type sudo; then apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y sudo; fi"))
+	DockerSourceInstaller = exec.New(exec.Command("wget -nv -O - https://get.docker.com/ | sh"))
 )
 
 //===============================================================================================================

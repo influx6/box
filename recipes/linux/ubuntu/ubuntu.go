@@ -21,5 +21,31 @@ type ubuntuProvisioner struct {
 
 func (ubp *ubuntuProvisioner) Exec(ctx context.CancelContext) error {
 
+	// Attempt to install necessary packages packages.
+	if err := GitInstall().Exec(ctx); err != nil {
+		return err
+	}
+
+	if err := CurlInstall().Exec(ctx); err != nil {
+		return err
+	}
+
+	if err := WgetInstall().Exec(ctx); err != nil {
+		return err
+	}
+
+	if err := OpenSSHInstall().Exec(ctx); err != nil {
+		return err
+	}
+
+	if err := AptTransportHTTPSInstall().Exec(ctx); err != nil {
+		return err
+	}
+
+	// Call docker installation from https://get.docker.com
+	if err := DockerSourceInstaller.Exec(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }
