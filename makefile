@@ -1,19 +1,18 @@
-CMD=./cmd/box
-EXAMPLES=./example
-LINUXENV= GOOS=linux GOARCH=amd64 CGO_ENABLED=0
-ARCHENV= GOOS=linux GOARCH=amd64 CGO_ENABLED=0
-OSXHENV= GOOS=darwin GOARCH=x86_64 CGO_ENABLED=0
+Cmd=./cmd/box
+Example=./example
+Linuxenv= GOOS=linux GOARCH=amd64 CGO_ENABLED=0
+Archenv= GOOS=linux GOARCH=amd64 CGO_ENABLED=0
+Osxenv= GOOS=darwin GOARCH=x86_64 CGO_ENABLED=0
 
 build:
 	go get -v
-	$(LINUXENV) go build -o ./example/ubuntu/box $(CMD)
-	$(install)
+	$(Linuxenv) go build -o ./example/ubuntu/box $(Cmd)
 
-install:
+install: build
 	go install ./cmd/...
 
+docker: build install
+	docker build -t ubuntu-run $(Example)/ubuntu/.
+
 clean:
-	rm $(EXAMPLES)/ubuntu/box
-
-
-$(build)
+	rm $(Example)/ubuntu/box
