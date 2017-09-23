@@ -8,6 +8,11 @@ import (
 	"os/exec"
 
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/metrics"
+)
+
+const (
+	ExecLogKey = "recipe:exec"
 )
 
 var (
@@ -63,6 +68,13 @@ func Output(out io.Writer) CommanderOption {
 	}
 }
 
+// Metric sets the metric field for logging for the Commander.
+func Metric(m metrics.Metrics) CommanderOption {
+	return func(cm *Commander) {
+		cm.Metrics = m
+	}
+}
+
 // Err sets the error writer for the Commander.
 func Err(err io.Writer) CommanderOption {
 	return func(cm *Commander) {
@@ -99,6 +111,7 @@ type Commander struct {
 	In      io.Reader
 	Out     io.Writer
 	Err     io.Writer
+	Metrics metrics.Metrics
 }
 
 // New returns a new Commander instance.
@@ -114,7 +127,9 @@ func New(ops ...CommanderOption) *Commander {
 
 // Exec executes giving command associated within the command with os/exec.
 func (c *Commander) Exec(ctx context.CancelContext) error {
-	var cmder *exec.Cmd
+	if c.Metrics == nil {
+		c.Metrics = metrics.New()
+	}
 
 	if c.Binary == "" {
 		c.Binary = "/bin/sh"
@@ -124,13 +139,16 @@ func (c *Commander) Exec(ctx context.CancelContext) error {
 		c.Flag = "-c"
 	}
 
+	var execCommand []string
+
 	switch {
 	case c.Command == "":
-		cmder = exec.Command(c.Binary)
+		execCommand = append(execCommand, c.Binary)
 	case c.Command != "":
-		cmder = exec.Command(c.Binary, c.Flag, c.Command)
+		execCommand = append(execCommand, c.Binary, c.Flag, c.Command)
 	}
 
+	cmder := exec.Command(execCommand[0], execCommand[1:]...)
 	cmder.Stderr = c.Err
 	cmder.Stdin = c.In
 	cmder.Stdout = c.Out
@@ -141,6 +159,12 @@ func (c *Commander) Exec(ctx context.CancelContext) error {
 			cmder.Env = append(cmder.Env, fmt.Sprintf("%s=%s", name, val))
 		}
 	}
+
+	c.Metrics.Emit(metrics.WithFields(metrics.Fields{
+		"opid":    ExecLogKey,
+		"command": execCommand,
+		"envs":    cmder.Env,
+	}).WithMessage("Executing native commands"))
 
 	if !c.Async {
 		return cmder.Run()

@@ -24,7 +24,7 @@ const (
 )
 
 const (
-	logKey = "LOGID"
+	logKey = "opid"
 )
 
 var (

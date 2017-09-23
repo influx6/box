@@ -87,9 +87,7 @@ func (osr *Info) ParseInfo(osReleaseContents []byte) error {
 		if err != nil {
 			continue
 		}
-		if err := osr.setIfPossible(key, val); err != nil {
-			return err
-		}
+		osr.setIfPossible(key, val)
 	}
 	return nil
 }

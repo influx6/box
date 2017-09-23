@@ -21,6 +21,16 @@ type ubuntuProvisioner struct {
 
 func (ubp *ubuntuProvisioner) Exec(ctx context.CancelContext) error {
 
+	// Attempt to install sudo
+	if err := SudoInstaller.Exec(ctx); err != nil {
+		return err
+	}
+
+	// Update apt-get
+	if err := (PackageSourceUpdate{}).Exec(ctx); err != nil {
+		return err
+	}
+
 	// Attempt to install necessary packages packages.
 	if err := GitInstall().Exec(ctx); err != nil {
 		return err
