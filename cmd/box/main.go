@@ -30,7 +30,7 @@ const (
 var (
 	red    = color.New(color.FgRed)
 	events = metrics.New(
-		metrics.Switch(logKey, map[string]metrics.Metrics{
+		metrics.Switch(metrics.MetricKey, map[string]metrics.Metrics{
 			"ops": custom.StackDisplayWith(os.Stdout, "[Op]", "-", nil),
 			"errs": metrics.Mod(func(m metrics.Entry) metrics.Entry {
 				m.Message = red.Sprintf(m.Message)
@@ -100,12 +100,12 @@ func main() {
 func initFn(c *cli.Context) {
 	exec, err := box.CreateWithJSON(strings.ToLower(runtime.GOOS), map[string]interface{}{})
 	if err != nil {
-		events.Emit(metrics.With(logKey, errLog).With("error", err).WithMessage("Failed to find provisioner for %q", runtime.GOOS))
+		events.Emit(metrics.WithKey(errLog).With("error", err).WithMessage("Failed to find provisioner for %q", runtime.GOOS))
 		return
 	}
 
-	if err := exec.Exec(context.Background()); err != nil {
-		events.Emit(metrics.With(logKey, errLog).With("error", err).WithMessage("Failed to run provisioner for %q", runtime.GOOS))
+	if err := exec.Exec(context.Background(), events); err != nil {
+		events.Emit(metrics.WithKey(errLog).With("error", err).WithMessage("Failed to run provisioner for %q", runtime.GOOS))
 		return
 	}
 }

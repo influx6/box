@@ -5,6 +5,7 @@ import (
 
 	"github.com/influx6/box"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/metrics"
 	"github.com/influx6/faux/ops"
 )
 
@@ -21,6 +22,6 @@ type DarwinProvisioner struct {
 }
 
 // Exec implements the box.Spell system.
-func (dw *DarwinProvisioner) Exec(ctx context.CancelContext) error {
+func (dw *DarwinProvisioner) Exec(ctx context.CancelContext, metric metrics.Metrics) error {
 	return errors.New("darwin/osx is not supported yet")
 }

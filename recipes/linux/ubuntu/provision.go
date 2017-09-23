@@ -5,6 +5,7 @@ import (
 
 	"github.com/influx6/box/recipes/exec"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/metrics"
 )
 
 // custom package installers
@@ -33,14 +34,14 @@ type PackageSourceUpdate struct {
 }
 
 // Exec executes giving recipe for building giving docker image for the provided binary.
-func (pkgSrc PackageSourceUpdate) Exec(ctx context.CancelContext) error {
+func (pkgSrc PackageSourceUpdate) Exec(ctx context.CancelContext, m metrics.Metrics) error {
 	cmd := exec.New(exec.Command("sudo apt-get -y update"), exec.Async())
 
 	if pkgSrc.DoWithCmd != nil {
 		pkgSrc.DoWithCmd(cmd)
 	}
 
-	return cmd.Exec(ctx)
+	return cmd.Exec(ctx, m)
 }
 
 //===============================================================================================================
@@ -150,7 +151,7 @@ type PackageInstaller struct {
 }
 
 // Exec executes giving recipe for building giving docker image for the provided binary.
-func (pkg *PackageInstaller) Exec(ctx context.CancelContext) error {
+func (pkg *PackageInstaller) Exec(ctx context.CancelContext, m metrics.Metrics) error {
 	var command string
 
 	switch {
@@ -172,5 +173,5 @@ func (pkg *PackageInstaller) Exec(ctx context.CancelContext) error {
 		pkg.DoWithCmd(cmd)
 	}
 
-	return cmd.Exec(ctx)
+	return cmd.Exec(ctx, m)
 }

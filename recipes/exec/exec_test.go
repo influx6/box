@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/influx6/box/recipes/exec"
+	"github.com/influx6/faux/metrics"
 	"github.com/influx6/faux/tests"
 )
 
@@ -17,7 +18,7 @@ func TestLsCommand(t *testing.T) {
 	ctx, cn := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cn()
 
-	if err := lsCmd.Exec(ctx); err != nil {
+	if err := lsCmd.Exec(ctx, metrics.New()); err != nil {
 		tests.Info("Output: %+q", outs.Bytes())
 		tests.Info("Errs: %+q", errs.Bytes())
 		tests.Failed("Should have succcesfully executed command: %+q", err)
@@ -32,7 +33,7 @@ func TestCatCommand(t *testing.T) {
 	ctx, cn := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cn()
 
-	if err := lsCmd.Exec(ctx); err != nil {
+	if err := lsCmd.Exec(ctx, metrics.New()); err != nil {
 		tests.Info("Output: %+q", outs.Bytes())
 		tests.Info("Errs: %+q", errs.Bytes())
 		tests.Failed("Should have succcesfully executed command: %+q", err)
@@ -53,7 +54,7 @@ func TestWgetCommand(t *testing.T) {
 	ctx, cn := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cn()
 
-	if err := lsCmd.Exec(ctx); err != nil {
+	if err := lsCmd.Exec(ctx, metrics.New()); err != nil {
 		tests.Info("Output: %+q", outs.Bytes())
 		tests.Info("Errs: %+q", errs.Bytes())
 		tests.Failed("Should have succcesfully executed command: %+q", err)

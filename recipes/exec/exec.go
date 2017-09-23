@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -68,13 +69,6 @@ func Output(out io.Writer) CommanderOption {
 	}
 }
 
-// Metric sets the metric field for logging for the Commander.
-func Metric(m metrics.Metrics) CommanderOption {
-	return func(cm *Commander) {
-		cm.Metrics = m
-	}
-}
-
 // Err sets the error writer for the Commander.
 func Err(err io.Writer) CommanderOption {
 	return func(cm *Commander) {
@@ -111,7 +105,6 @@ type Commander struct {
 	In      io.Reader
 	Out     io.Writer
 	Err     io.Writer
-	Metrics metrics.Metrics
 }
 
 // New returns a new Commander instance.
@@ -126,11 +119,7 @@ func New(ops ...CommanderOption) *Commander {
 }
 
 // Exec executes giving command associated within the command with os/exec.
-func (c *Commander) Exec(ctx context.CancelContext) error {
-	if c.Metrics == nil {
-		c.Metrics = metrics.New()
-	}
-
+func (c *Commander) Exec(ctx context.CancelContext, metric metrics.Metrics) error {
 	if c.Binary == "" {
 		c.Binary = "/bin/sh"
 	}
@@ -148,8 +137,17 @@ func (c *Commander) Exec(ctx context.CancelContext) error {
 		execCommand = append(execCommand, c.Binary, c.Flag, c.Command)
 	}
 
+	var errCopy bytes.Buffer
+	var multiErr io.Writer
+
+	if c.Err != nil {
+		multiErr = io.MultiWriter(&errCopy, c.Err)
+	} else {
+		multiErr = &errCopy
+	}
+
 	cmder := exec.Command(execCommand[0], execCommand[1:]...)
-	cmder.Stderr = c.Err
+	cmder.Stderr = multiErr
 	cmder.Stdin = c.In
 	cmder.Stdout = c.Out
 	cmder.Env = os.Environ()
@@ -160,17 +158,29 @@ func (c *Commander) Exec(ctx context.CancelContext) error {
 		}
 	}
 
-	c.Metrics.Emit(metrics.WithFields(metrics.Fields{
-		"opid":    ExecLogKey,
+	metric.Emit(metrics.WithKey(ExecLogKey).WithFields(metrics.Fields{
 		"command": execCommand,
 		"envs":    cmder.Env,
 	}).WithMessage("Executing native commands"))
 
 	if !c.Async {
-		return cmder.Run()
+		err := cmder.Run()
+		metric.Emit(metrics.WithKey(ExecLogKey).WithFields(metrics.Fields{
+			"error":      err,
+			"command":    execCommand,
+			"envs":       cmder.Env,
+			"error_data": errCopy.Bytes(),
+		}).WithMessage("Executing native commands"))
+		return err
 	}
 
 	if err := cmder.Start(); err != nil {
+		metric.Emit(metrics.WithKey(ExecLogKey).WithFields(metrics.Fields{
+			"error":      err,
+			"command":    execCommand,
+			"envs":       cmder.Env,
+			"error_data": errCopy.Bytes(),
+		}).WithMessage("Executing native commands"))
 		return err
 	}
 

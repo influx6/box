@@ -5,6 +5,7 @@ import (
 
 	"github.com/influx6/box"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/metrics"
 	"github.com/influx6/faux/ops"
 )
 
@@ -21,6 +22,6 @@ type WindowProvisioner struct {
 }
 
 // Exec implements the box.Spell system.
-func (dw *WindowProvisioner) Exec(ctx context.CancelContext) error {
+func (dw *WindowProvisioner) Exec(ctx context.CancelContext, m metrics.Metrics) error {
 	return errors.New("window(adm64/i386) is not supported yet")
 }

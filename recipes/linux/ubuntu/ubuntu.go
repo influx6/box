@@ -4,6 +4,7 @@ import (
 	"github.com/influx6/box"
 	"github.com/influx6/box/recipes/exec/osinfo"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/metrics"
 	"github.com/influx6/faux/ops"
 )
 
@@ -19,41 +20,41 @@ type ubuntuProvisioner struct {
 	Info osinfo.Info `json:"os_info"`
 }
 
-func (ubp *ubuntuProvisioner) Exec(ctx context.CancelContext) error {
+func (ubp *ubuntuProvisioner) Exec(ctx context.CancelContext, m metrics.Metrics) error {
 
 	// Attempt to install sudo
-	if err := SudoInstaller.Exec(ctx); err != nil {
+	if err := SudoInstaller.Exec(ctx, m); err != nil {
 		return err
 	}
 
 	// Update apt-get
-	if err := (PackageSourceUpdate{}).Exec(ctx); err != nil {
+	if err := (PackageSourceUpdate{}).Exec(ctx, m); err != nil {
 		return err
 	}
 
 	// Attempt to install necessary packages packages.
-	if err := GitInstall().Exec(ctx); err != nil {
+	if err := GitInstall().Exec(ctx, m); err != nil {
 		return err
 	}
 
-	if err := CurlInstall().Exec(ctx); err != nil {
+	if err := CurlInstall().Exec(ctx, m); err != nil {
 		return err
 	}
 
-	if err := WgetInstall().Exec(ctx); err != nil {
+	if err := WgetInstall().Exec(ctx, m); err != nil {
 		return err
 	}
 
-	if err := OpenSSHInstall().Exec(ctx); err != nil {
+	if err := OpenSSHInstall().Exec(ctx, m); err != nil {
 		return err
 	}
 
-	if err := AptTransportHTTPSInstall().Exec(ctx); err != nil {
+	if err := AptTransportHTTPSInstall().Exec(ctx, m); err != nil {
 		return err
 	}
 
 	// Call docker installation from https://get.docker.com
-	if err := DockerSourceInstaller.Exec(ctx); err != nil {
+	if err := DockerSourceInstaller.Exec(ctx, m); err != nil {
 		return err
 	}
 

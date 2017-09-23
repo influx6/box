@@ -6,6 +6,7 @@ import (
 	"github.com/influx6/box"
 	"github.com/influx6/box/recipes/exec/osinfo"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/metrics"
 	"github.com/influx6/faux/ops"
 
 	_ "github.com/influx6/box/recipes/linux/ubuntu"
@@ -24,7 +25,7 @@ type LinuxProvisioner struct {
 }
 
 // Exec implements the box.Spell system.
-func (dw *LinuxProvisioner) Exec(ctx context.CancelContext) error {
+func (dw *LinuxProvisioner) Exec(ctx context.CancelContext, m metrics.Metrics) error {
 	info, err := osinfo.OSInfo(ctx)
 	if err != nil {
 		return err
@@ -37,7 +38,7 @@ func (dw *LinuxProvisioner) Exec(ctx context.CancelContext) error {
 		return fmt.Errorf("Linux Distro %q not supported: %+q", info.ID, err)
 	}
 
-	if err := provisioner.Exec(ctx); err != nil {
+	if err := provisioner.Exec(ctx, m); err != nil {
 		return err
 	}
 
