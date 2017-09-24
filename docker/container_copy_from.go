@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/metrics"
 	"github.com/influx6/faux/ops"
 	"github.com/moby/moby/client"
 )
@@ -48,12 +49,31 @@ type onceCopyFromContainerOp struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceCopyFromContainerOp) Exec(ctx context.CancelContext) error {
-	return cm.spell.Exec(ctx, cm.callback)
+func (cm *onceCopyFromContainerOp) Exec(ctx context.CancelContext, m metrics.Metrics) error {
+	return cm.spell.Exec(ctx, m, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *CopyFromContainerOp) Exec(ctx context.CancelContext, callback CopyFromContainerResponseCallback) error {
+func (cm *CopyFromContainerOp) Exec(ctx context.CancelContext, m metrics.Metrics, callback CopyFromContainerResponseCallback) error {
+	if cm.client == nil {
+		return ErrNoDockerClientProvided
+	}
+
+	done := make(chan struct{})
+	defer close(done)
+
+	// Cancel context if are done or if context has expired.
+	reqCtx, cancel := context.WithCancel(context.Background())
+	go func() {
+		select {
+		case <-ctx.Done():
+			cancel()
+			return
+		case <-done:
+			return
+		}
+	}()
+
 	// Execute client CopyFromContainer method.
 	ret0, ret1, err := cm.client.CopyFromContainer(cm.container, cm.srcPath)
 	if err != nil {

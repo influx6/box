@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/metrics"
 	"github.com/influx6/faux/ops"
 	"github.com/moby/moby/client"
 )
@@ -43,14 +44,33 @@ type onceEventsOp struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceEventsOp) Exec(ctx context.CancelContext) error {
-	return cm.spell.Exec(ctx, cm.callback)
+func (cm *onceEventsOp) Exec(ctx context.CancelContext, m metrics.Metrics) error {
+	return cm.spell.Exec(ctx, m, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *EventsOp) Exec(ctx context.CancelContext, callback EventsResponseCallback) error {
+func (cm *EventsOp) Exec(ctx context.CancelContext, m metrics.Metrics, callback EventsResponseCallback) error {
+	if cm.client == nil {
+		return ErrNoDockerClientProvided
+	}
+
+	done := make(chan struct{})
+	defer close(done)
+
+	// Cancel context if are done or if context has expired.
+	reqCtx, cancel := context.WithCancel(context.Background())
+	go func() {
+		select {
+		case <-ctx.Done():
+			cancel()
+			return
+		case <-done:
+			return
+		}
+	}()
+
 	// Execute client Events method.
-	err := cm.client.Events(cm.eventOp)
+	err := cm.client.Events(reqCtx, cm.eventOp)
 	if err != nil {
 		return err
 	}

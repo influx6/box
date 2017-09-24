@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/metrics"
 	"github.com/influx6/faux/ops"
 	"github.com/moby/moby/client"
 )
@@ -42,14 +43,33 @@ type onceNetworkDisconnectOp struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceNetworkDisconnectOp) Exec(ctx context.CancelContext) error {
-	return cm.spell.Exec(ctx, cm.callback)
+func (cm *onceNetworkDisconnectOp) Exec(ctx context.CancelContext, m metrics.Metrics) error {
+	return cm.spell.Exec(ctx, m, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *NetworkDisconnectOp) Exec(ctx context.CancelContext, callback NetworkDisconnectResponseCallback) error {
+func (cm *NetworkDisconnectOp) Exec(ctx context.CancelContext, m metrics.Metrics, callback NetworkDisconnectResponseCallback) error {
+	if cm.client == nil {
+		return ErrNoDockerClientProvided
+	}
+
+	done := make(chan struct{})
+	defer close(done)
+
+	// Cancel context if are done or if context has expired.
+	reqCtx, cancel := context.WithCancel(context.Background())
+	go func() {
+		select {
+		case <-ctx.Done():
+			cancel()
+			return
+		case <-done:
+			return
+		}
+	}()
+
 	// Execute client NetworkDisconnect method.
-	err := cm.client.NetworkDisconnect(cm.networkID)
+	err := cm.client.NetworkDisconnect(reqCtx, cm.networkID)
 	if err != nil {
 		return err
 	}

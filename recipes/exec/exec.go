@@ -7,13 +7,11 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 
+	"github.com/influx6/box/shared/consts"
 	"github.com/influx6/faux/context"
 	"github.com/influx6/faux/metrics"
-)
-
-const (
-	ExecLogKey = "recipe:exec"
 )
 
 var (
@@ -27,6 +25,22 @@ type CommanderOption func(*Commander)
 func Command(c string) CommanderOption {
 	return func(cm *Commander) {
 		cm.Command = c
+	}
+}
+
+// Commands sets the subcommands for the Commander exec call.
+// If subcommands are set then the Binary, Flag and Command are ignored
+// and the values of the subcommand is used.
+func Commands(p ...string) CommanderOption {
+	return func(cm *Commander) {
+		cm.SubCommands = p
+	}
+}
+
+// Dir sets the Directory for the Commander exec call.
+func Dir(p string) CommanderOption {
+	return func(cm *Commander) {
+		cm.Dir = p
 	}
 }
 
@@ -92,19 +106,30 @@ func Apply(ops ...CommanderOption) CommanderOption {
 	}
 }
 
+// ApplyImmediate applies the options immediately to the Commander.
+func ApplyImmediate(cm *Commander, ops ...CommanderOption) *Commander {
+	for _, op := range ops {
+		op(cm)
+	}
+
+	return cm
+}
+
 // Commander runs provided command within a /bin/sh -c "{COMMAND}", returning
 // response associatedly. It also attaches if provided stdin, stdout and stderr readers/writers.
 // Commander allows you to set the binary to use and flag, where each defaults to /bin/sh for binary
 // and -c for flag respectively.
 type Commander struct {
-	Async   bool
-	Command string
-	Binary  string
-	Flag    string
-	Envs    map[string]string
-	In      io.Reader
-	Out     io.Writer
-	Err     io.Writer
+	Async       bool
+	Command     string
+	SubCommands []string
+	Dir         string
+	Binary      string
+	Flag        string
+	Envs        map[string]string
+	In          io.Reader
+	Out         io.Writer
+	Err         io.Writer
 }
 
 // New returns a new Commander instance.
@@ -131,9 +156,11 @@ func (c *Commander) Exec(ctx context.CancelContext, metric metrics.Metrics) erro
 	var execCommand []string
 
 	switch {
-	case c.Command == "":
+	case c.Command == "" && len(c.SubCommands) != 0:
+		execCommand = c.SubCommands
+	case c.Command == "" && len(c.SubCommands) == 0:
 		execCommand = append(execCommand, c.Binary)
-	case c.Command != "":
+	case c.Command != "" && len(c.SubCommands) == 0:
 		execCommand = append(execCommand, c.Binary, c.Flag, c.Command)
 	}
 
@@ -147,6 +174,7 @@ func (c *Commander) Exec(ctx context.CancelContext, metric metrics.Metrics) erro
 	}
 
 	cmder := exec.Command(execCommand[0], execCommand[1:]...)
+	cmder.Dir = c.Dir
 	cmder.Stderr = multiErr
 	cmder.Stdin = c.In
 	cmder.Stdout = c.Out
@@ -158,26 +186,28 @@ func (c *Commander) Exec(ctx context.CancelContext, metric metrics.Metrics) erro
 		}
 	}
 
-	metric.Emit(metrics.WithKey(ExecLogKey).WithFields(metrics.Fields{
-		"command": execCommand,
+	metric.Emit(metrics.WithKey(consts.RecipeExecLogKey).WithFields(metrics.Fields{
+		"command": strings.Join(execCommand, " "),
 		"envs":    cmder.Env,
 	}).WithMessage("Executing native commands"))
 
 	if !c.Async {
 		err := cmder.Run()
-		metric.Emit(metrics.WithKey(ExecLogKey).WithFields(metrics.Fields{
-			"error":      err,
-			"command":    execCommand,
-			"envs":       cmder.Env,
-			"error_data": errCopy.Bytes(),
-		}).WithMessage("Executing native commands"))
+		if err != nil {
+			metric.Emit(metrics.WithKey(consts.RecipeExecLogErrorKey).WithFields(metrics.Fields{
+				"error":      err,
+				"command":    strings.Join(execCommand, " "),
+				"envs":       cmder.Env,
+				"error_data": errCopy.Bytes(),
+			}).WithMessage("Executing native commands"))
+		}
 		return err
 	}
 
 	if err := cmder.Start(); err != nil {
-		metric.Emit(metrics.WithKey(ExecLogKey).WithFields(metrics.Fields{
+		metric.Emit(metrics.WithKey(consts.RecipeExecLogErrorKey).WithFields(metrics.Fields{
 			"error":      err,
-			"command":    execCommand,
+			"command":    strings.Join(execCommand, " "),
 			"envs":       cmder.Env,
 			"error_data": errCopy.Bytes(),
 		}).WithMessage("Executing native commands"))
@@ -194,6 +224,12 @@ func (c *Commander) Exec(ctx context.CancelContext, metric metrics.Metrics) erro
 	}()
 
 	if err := cmder.Wait(); err != nil {
+		metric.Emit(metrics.WithKey(consts.RecipeExecLogErrorKey).WithFields(metrics.Fields{
+			"error":      err,
+			"command":    execCommand,
+			"envs":       cmder.Env,
+			"error_data": errCopy.Bytes(),
+		}).WithMessage("Executing native commands"))
 		return err
 	}
 
@@ -202,6 +238,12 @@ func (c *Commander) Exec(ctx context.CancelContext, metric metrics.Metrics) erro
 	}
 
 	if !cmder.ProcessState.Success() {
+		metric.Emit(metrics.WithKey(consts.RecipeExecLogErrorKey).WithFields(metrics.Fields{
+			"error":      ErrCommandFailed,
+			"command":    execCommand,
+			"envs":       cmder.Env,
+			"error_data": errCopy.Bytes(),
+		}).WithMessage("Executing native commands"))
 		return ErrCommandFailed
 	}
 

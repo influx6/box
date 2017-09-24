@@ -2,9 +2,9 @@ package linux
 
 import (
 	"fmt"
+	osexec "os/exec"
 
 	"github.com/influx6/box"
-	"github.com/influx6/box/recipes/exec/osinfo"
 	"github.com/influx6/faux/context"
 	"github.com/influx6/faux/metrics"
 	"github.com/influx6/faux/ops"
@@ -26,13 +26,19 @@ type LinuxProvisioner struct {
 
 // Exec implements the box.Spell system.
 func (dw *LinuxProvisioner) Exec(ctx context.CancelContext, m metrics.Metrics) error {
-	info, err := osinfo.OSInfo(ctx)
+	info, err := OSInfo(ctx, m)
 	if err != nil {
 		return err
 	}
 
+	var upstart bool
+	if _, err := osexec.LookPath("upstart"); err == nil {
+		upstart = true
+	}
+
 	provisioner, err := box.CreateWithJSON(fmt.Sprintf("linux/%s", info.ID), map[string]interface{}{
 		"os_info": info,
+		"upstart": upstart,
 	})
 	if err != nil {
 		return fmt.Errorf("Linux Distro %q not supported: %+q", info.ID, err)

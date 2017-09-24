@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/metrics"
 	"github.com/influx6/faux/ops"
 	"github.com/moby/moby/client"
 )
@@ -47,14 +48,33 @@ type onceCheckpointDeleteOp struct {
 }
 
 // Exec excutes the spell and adds the neccessary callback.
-func (cm *onceCheckpointDeleteOp) Exec(ctx context.CancelContext) error {
-	return cm.spell.Exec(ctx, cm.callback)
+func (cm *onceCheckpointDeleteOp) Exec(ctx context.CancelContext, m metrics.Metrics) error {
+	return cm.spell.Exec(ctx, m, cm.callback)
 }
 
 // Exec executes the image creation for the underline docker server pointed to.
-func (cm *CheckpointDeleteOp) Exec(ctx context.CancelContext, callback CheckpointDeleteResponseCallback) error {
+func (cm *CheckpointDeleteOp) Exec(ctx context.CancelContext, m metrics.Metrics, callback CheckpointDeleteResponseCallback) error {
+	if cm.client == nil {
+		return ErrNoDockerClientProvided
+	}
+
+	done := make(chan struct{})
+	defer close(done)
+
+	// Cancel context if are done or if context has expired.
+	reqCtx, cancel := context.WithCancel(context.Background())
+	go func() {
+		select {
+		case <-ctx.Done():
+			cancel()
+			return
+		case <-done:
+			return
+		}
+	}()
+
 	// Execute client CheckpointDelete method.
-	err := cm.client.CheckpointDelete(cm.container, cm.chop)
+	err := cm.client.CheckpointDelete(reqCtx, cm.container, cm.chop)
 	if err != nil {
 		return err
 	}

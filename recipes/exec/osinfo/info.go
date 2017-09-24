@@ -7,46 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-
-	"github.com/influx6/box/recipes/exec"
-	"github.com/influx6/faux/context"
 )
-
-// OSInfo retrieves the OSRelease details related to the operating system.
-func OSInfo(ctx context.CancelContext) (*Info, error) {
-	if data, err := useETC(ctx); err == nil {
-		return NewInfo(data)
-	}
-
-	data, err := useUsrLib(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewInfo(data)
-}
-
-func useETC(ctx context.CancelContext) ([]byte, error) {
-	var outs bytes.Buffer
-	lsCmd := exec.New(exec.Command("cat /etc/os-release"), exec.Sync(), exec.Output(&outs))
-
-	if err := lsCmd.Exec(ctx); err != nil {
-		return nil, err
-	}
-
-	return outs.Bytes(), nil
-}
-
-func useUsrLib(ctx context.CancelContext) ([]byte, error) {
-	var outs bytes.Buffer
-	lsCmd := exec.New(exec.Command("cat /usr/lib/os-release"), exec.Sync(), exec.Output(&outs))
-
-	if err := lsCmd.Exec(ctx); err != nil {
-		return nil, err
-	}
-
-	return outs.Bytes(), nil
-}
 
 // The /etc/os-release file contains operating system identification data
 // See http://www.freedesktop.org/software/systemd/man/os-release.html for more details
