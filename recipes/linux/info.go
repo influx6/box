@@ -3,9 +3,9 @@ package linux
 import (
 	"bytes"
 
-	"github.com/influx6/box/recipes/exec"
-	"github.com/influx6/box/recipes/exec/osinfo"
+	"github.com/influx6/box/recipes/osinfo"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/exec"
 	"github.com/influx6/faux/metrics"
 )
 

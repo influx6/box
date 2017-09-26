@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/influx6/box"
-	"github.com/influx6/box/recipes/exec"
-	"github.com/influx6/box/recipes/exec/osinfo"
+	"github.com/influx6/box/recipes/osinfo"
 	"github.com/influx6/faux/context"
+	"github.com/influx6/faux/exec"
 	"github.com/influx6/faux/metrics"
 	"github.com/influx6/faux/ops"
 
@@ -53,18 +53,13 @@ func (ubp *ubuntuProvisioner) Exec(ctx context.CancelContext, m metrics.Metrics)
 		return err
 	}
 
-	// Attempt to install curl packages.
-	if err := InstallPackage("curl", pkgaction.InstallAction, ubp.UpstartBased, exec.Output(os.Stdout)).Exec(ctx, m); err != nil {
-		return err
-	}
-
-	// Attempt to install wget packages.
-	if err := InstallPackage("wget", pkgaction.InstallAction, ubp.UpstartBased, exec.Output(os.Stdout)).Exec(ctx, m); err != nil {
+	// Attempt to install wget, curl, ufw packages.
+	if err := InstallPackage("curl wget ufw", pkgaction.InstallAction, ubp.UpstartBased, exec.Output(os.Stdout)).Exec(ctx, m); err != nil {
 		return err
 	}
 
 	// Attempt to install openssh packages.
-	if err := InstallPackage("openssh-client sshcommand", pkgaction.InstallAction, ubp.UpstartBased, exec.Output(os.Stdout)).Exec(ctx, m); err != nil {
+	if err := InstallPackage("openssh-client sshcommand openssl", pkgaction.InstallAction, ubp.UpstartBased, exec.Output(os.Stdout)).Exec(ctx, m); err != nil {
 		return err
 	}
 
