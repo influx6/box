@@ -1,6 +1,0 @@
-FROM ubuntu
-MAINTAINER ALEXANDER EWETUMO <trinoxf@gmail.com>
-
-ADD box /bin/box
-
-CMD ["/bin/box"]
