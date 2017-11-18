@@ -1,4 +1,4 @@
-package docker
+package actions
 
 import (
 	gctx "context"
@@ -16,33 +16,33 @@ var (
 	ErrNoFilesystemProvided   = errors.New("Filesystem required")
 )
 
-// BuildImageSpell defines a structure which implements the Spell interface
+// BuildFileSystemImage defines a structure which implements the Spell interface
 // for building of docker image.
 // To use the BuildImageSpell the following is required:
 // 1. A filesystem to be supplied has the build context
 // 2. A name for the image to be build
 // As optional, a types.ImageBuildOptions if you wish to override internally generated as
 // a means of setting more fields for the docker clients request.
-type BuildImageSpell struct {
+type BuildFileSystemImage struct {
 	Name       string
 	Dockerfile string
 	Tags       []string
 	Client     *client.Client
 	Filesystem filesystem.Filesystem
 	Options    *types.ImageBuildOptions
-	Callback   func(types.ImageBuildResponse)
+	Callback   func(types.ImageBuildResponse) error
 }
 
 // Exec executes the image creation request through the provided docker client.
 // If the spell has the types.ImageBuildOptions without a filesystem, then the
 // types.ImageBuildOptions will be used as is, else the filesystem will be included
 // has the underline BuildContext.
-func (cm *BuildImageSpell) Exec(ctx context.CancelContext) error {
-	if cm.Client == nil {
+func (bm BuildFileSystemImage) Exec(ctx context.CancelContext) error {
+	if bm.Client == nil {
 		return ErrNoDockerClientProvided
 	}
 
-	if cm.Filesystem == nil {
+	if bm.Filesystem == nil {
 		return ErrNoFilesystemProvided
 	}
 
@@ -61,32 +61,32 @@ func (cm *BuildImageSpell) Exec(ctx context.CancelContext) error {
 		}
 	}()
 
-	reader, err := cm.Filesystem.ToReader()
+	reader, err := bm.Filesystem.ToReader()
 	if err != nil {
 		return err
 	}
 
 	var imageOps types.ImageBuildOptions
 
-	if cm.Options != nil {
-		imageOps = *cm.Options
+	if bm.Options != nil {
+		imageOps = *bm.Options
 	} else {
 		imageOps.PullParent = true
 		imageOps.SuppressOutput = false
 	}
 
-	imageOps.Tags = append(imageOps.Tags, cm.Name)
-	imageOps.Tags = append(imageOps.Tags, cm.Tags...)
+	imageOps.Tags = append(imageOps.Tags, bm.Name)
+	imageOps.Tags = append(imageOps.Tags, bm.Tags...)
 
-	res, err := cm.Client.ImageBuild(mctx, reader, imageOps)
+	res, err := bm.Client.ImageBuild(mctx, reader, imageOps)
 	if err != nil {
 		return err
 	}
 
-	defer res.Body.Close()
+	// defer res.Body.Close()
 
-	if cm.Callback != nil {
-		cm.Callback(res)
+	if bm.Callback != nil {
+		return bm.Callback(res)
 	}
 
 	return nil
