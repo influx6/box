@@ -137,10 +137,15 @@ pullLoop:
 			if len(opName) == 0 {
 				return nil, ErrNoOpName
 			}
+
+			if len(opName) >= maxOPNameLength {
+				return nil, ErrInvalidOpName
+			}
+
 			return opName, err
 		}
 
-		if started && len(opName) >= 50 {
+		if started && len(opName) >= maxOPNameLength {
 			return nil, ErrInvalidOpName
 		}
 
@@ -154,6 +159,11 @@ pullLoop:
 			opName = append(opName, bit)
 		}
 	}
+
+	if len(opName) >= maxOPNameLength {
+		return nil, ErrInvalidOpName
+	}
+
 	return opName, nil
 }
 

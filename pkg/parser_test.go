@@ -12,7 +12,7 @@ func TestMessageParser(t *testing.T) {
 	var parser pkg.OpParser
 	parser.Secret = "wreckage"
 
-	t.Logf("\tWhen parsing message with incorrect secret")
+	t.Log("\tWhen parsing message with incorrect secret")
 	{
 		raw := []byte("wreckoge#232uFR5   MSG   welcome to the league!")
 		_, err := parser.Parse(raw)
@@ -27,9 +27,9 @@ func TestMessageParser(t *testing.T) {
 		tests.Passed("Should have received error 'ErrInvalidSecret'")
 	}
 
-	t.Logf("\tWhen parsing message with no OP")
+	t.Log("\tWhen parsing message with no OP")
 	{
-		raw := []byte("wreckoge#232uFR5  welcome to the league of heroes!")
+		raw := []byte("wreckage#232uFR5  welcome-to-the-league-of-heroes!")
 		_, err := parser.Parse(raw)
 		if err == nil {
 			tests.Failed("Should have failed to parse message")
@@ -42,7 +42,7 @@ func TestMessageParser(t *testing.T) {
 		tests.Passed("Should have received error 'ErrInvalidOpName'")
 	}
 
-	t.Logf("\tWhen parsing message with correct secret")
+	t.Log("\tWhen parsing message with correct secret")
 	{
 		raw := []byte("wreckage#232uFR5   MSG   welcome to the league!")
 		op, err := parser.Parse(raw)
@@ -66,14 +66,14 @@ func TestMessageParser(t *testing.T) {
 		tests.Passed("Should have successfully matched operation name")
 
 		body := []byte("welcome to the league!")
-		if bytes.Equal(op.Body, body) {
+		if !bytes.Equal(op.Body, body) {
 			tests.Info("Received: %+q", op.Body)
 			tests.Info("Expected: %+q", body)
 			tests.Failed("Should have successfully matched body")
 		}
 		tests.Passed("Should have successfully matched body")
 
-		if bytes.Equal(op.Raw, raw) {
+		if !bytes.Equal(op.Raw, raw) {
 			tests.Info("Received: %+q", op.Raw)
 			tests.Info("Expected: %+q", raw)
 			tests.Failed("Should have successfully matched body")
