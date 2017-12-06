@@ -114,6 +114,7 @@ func (op OpParser) pullBody(reader *bufio.Reader) ([]byte, error) {
 			if !started {
 				continue
 			}
+			fallthrough
 		default:
 			started = true
 			body = append(body, bit)
