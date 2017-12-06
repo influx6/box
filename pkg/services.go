@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"github.com/influx6/mnet"
-	"github.com/influx6/mnet"
 )
 
 // SecurityCtrl implements the certificate authorization and request system which
