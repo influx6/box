@@ -177,6 +177,15 @@ func (box *BoxCtrl) loadServerCertificate() error {
 	return nil
 }
 
+// signCertificateRequest signs a incoming request as a client certificate.
+func (box *BoxCtrl) signCertificateRequest(req *certificates.CertificateRequest) error {
+	if box.CaAuthority == nil {
+		return certificates.ErrNoRootCACertificate
+	}
+
+	return box.CaAuthority.ApproveClientCertificateSigningRequest(req, certificateService.Serials, CertificateAuthorityReqLifetime)
+}
+
 // setupServerCertificate sets up a new certificate which will be used for
 // tls on a box server.
 func (box *BoxCtrl) setupServerCertificate() error {

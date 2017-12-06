@@ -1,18 +1,21 @@
 package main
 
+import "flag"
+
 // consts ...
 const (
-	EntryPort   = 34567
-	SecuredPort = 34568
-	BoxDir      = ".box"
+	entryPort   = 34567
+	securedPort = 34568
+	boxDir      = ".box"
 )
 
-// Serve intiailizesthe box service and creates appropriate profile and
-// folder to service incoming request.
-func Serve(secret string, serverName string) error {
-	return nil
+func main() {
+	flag.Parse()
+
 }
 
-func main() {
-
+// serve intiailizesthe box service and creates appropriate profile and
+// folder to service incoming request.
+func serve(secret string, serverName string, company string) error {
+	return nil
 }
