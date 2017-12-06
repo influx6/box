@@ -1,0 +1,5 @@
+# config for box server
+
+id = {{.ID}}
+company = {{.Company}}
+serverName = {{.ServerName}}
