@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"bytes"
-	"crypto/x509"
 	"errors"
 	"time"
 
@@ -25,8 +24,6 @@ var (
 	RSAKeyStrength                  = 4096
 	CertificateAuthorityReqLifetime = time.Hour * 8760       // 1 year certificate requests
 	CertificateAuthorityLifetime    = time.Hour * (5 * 8760) // 5 years CA
-	serverUsageKeys                 = []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
-	clientUsageKeys                 = []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}
 	certificateService              = certificates.CertificateAuthorityService{
 		KeyStrength: RSAKeyStrength,
 		LifeTime:    CertificateAuthorityLifetime,
@@ -146,7 +143,7 @@ func (box *BoxCtrl) setupCertificateAuthority() error {
 	caService := certificateService
 	caService.Profile = profile
 
-	caAuthority, err = caService.New()
+	caAuthority, err := caService.New()
 	if err != nil {
 		return err
 	}
@@ -199,11 +196,11 @@ func (box *BoxCtrl) setupServerCertificate() error {
 	if err := box.CaAuthority.ApproveServerCertificateSigningRequest(
 		&serverCA,
 		certificateService.Serials,
-		serverUsageKeys,
+		CertificateAuthorityReqLifetime,
 	); err != nil {
 		return err
 	}
 
-	box.caServer = &serverCA
+	box.CaServer = &serverCA
 	return serverCA.Persist(certFiles)
 }

@@ -19,6 +19,7 @@ var (
 	ErrInvalidSecret  = errors.New("message secret does not match expect secret")
 	ErrNoHash         = errors.New("message must have initial hash with secret prefix")
 	ErrInvalidOpName  = errors.New("message must have op name with max length of 50 in characters")
+	ErrInvalidMessage = errors.New("messages must be in format: secret#identity OP [body...]")
 )
 
 var (
@@ -49,12 +50,16 @@ type OpParser struct {
 // if the data is invalid.
 func (op OpParser) Parse(incoming []byte) (Op, error) {
 	var msg Op
-	msg.Raw = msg
+	msg.Raw = incoming
 
 	reader := bufio.NewReader(bytes.NewReader(incoming))
 	prosecret, err := op.pullSecret(reader)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return msg, err
+	}
+
+	if err != nil && err == io.EOF {
+		return msg, ErrInvalidMessage
 	}
 
 	if string(prosecret) != op.Secret {
@@ -62,14 +67,18 @@ func (op OpParser) Parse(incoming []byte) (Op, error) {
 	}
 
 	identity, err := op.pullIdentity(reader)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return msg, err
+	}
+
+	if err != nil && err == io.EOF {
+		return msg, ErrInvalidMessage
 	}
 
 	msg.Identity = string(identity)
 
 	opHeader, err := op.pullOPName(reader)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return msg, err
 	}
 
@@ -125,7 +134,10 @@ pullLoop:
 		}
 
 		if err != nil && err == io.EOF {
-			return nil, ErrNoOpName
+			if len(opName) == 0 {
+				return nil, ErrNoOpName
+			}
+			return opName, err
 		}
 
 		if started && len(opName) >= 50 {
@@ -157,7 +169,10 @@ pullLoop:
 		}
 
 		if err != nil && err == io.EOF {
-			return nil, ErrNoIdentity
+			if len(identity) == 0 {
+				return nil, ErrNoIdentity
+			}
+			return identity, err
 		}
 
 		switch rune(bit) {
@@ -181,7 +196,10 @@ pullLoop:
 		}
 
 		if err != nil && err == io.EOF {
-			return nil, ErrSecretRequired
+			if len(secret) == 0 {
+				return nil, ErrSecretRequired
+			}
+			return secret, err
 		}
 
 		switch rune(bit) {

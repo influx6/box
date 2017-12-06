@@ -9,7 +9,7 @@ import (
 )
 
 func TestMessageParser(t *testing.T) {
-	var parser pkg.Parser
+	var parser pkg.OpParser
 	parser.Secret = "wreckage"
 
 	t.Logf("\tWhen parsing message with incorrect secret")

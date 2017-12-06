@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"github.com/influx6/mnet"
+	"github.com/influx6/mnet"
 )
 
 // SecurityCtrl implements the certificate authorization and request system which
@@ -12,7 +13,7 @@ type SecurityCtrl struct {
 
 // Serve implements the necessary method which receives messages over the wire
 // through provided mtcp.Client with appropriate response.
-func (sec SecurityCtrl) Serve(client *mtcp.Client) error {
+func (sec SecurityCtrl) Serve(client *mnet.Client) error {
 	var err error
 	var message []byte
 
