@@ -12,7 +12,7 @@ func TestMessageParser(t *testing.T) {
 	var parser pkg.OpParser
 	parser.Secret = "wreckage"
 
-	t.Log("\tWhen parsing message with incorrect secret")
+	tests.Header("\tWhen parsing message with incorrect secret")
 	{
 		raw := []byte("wreckoge#232uFR5   MSG   welcome to the league!")
 		_, err := parser.Parse(raw)
@@ -27,7 +27,7 @@ func TestMessageParser(t *testing.T) {
 		tests.Passed("Should have received error 'ErrInvalidSecret'")
 	}
 
-	t.Log("\tWhen parsing message with no OP")
+	tests.Header("\tWhen parsing message with no OP")
 	{
 		raw := []byte("wreckage#232uFR5  welcome-to-the-league-of-heroes!")
 		_, err := parser.Parse(raw)
@@ -42,7 +42,7 @@ func TestMessageParser(t *testing.T) {
 		tests.Passed("Should have received error 'ErrInvalidOpName'")
 	}
 
-	t.Log("\tWhen parsing message with correct secret")
+	tests.Header("\tWhen parsing message with correct secret")
 	{
 		raw := []byte("wreckage#232uFR5   MSG   welcome to the league!")
 		op, err := parser.Parse(raw)
